@@ -196,8 +196,14 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
 {
     wxBufferedPaintDC dc(this);
     wxRect clientRect(GetClientRect());
+    if(clientRect.width <= 3) return;
+
     wxRect rect(GetClientRect());
     rect.Deflate(3);
+
+    // Reudce the length of the tabs bitmap by 16 pixles (we will draw there the drop down
+    // button)
+    rect.SetWidth(rect.GetWidth() - 16);
 
     // Draw background
     NotebookTab::Colours colours;
@@ -205,64 +211,66 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
     dc.SetBrush(colours.tabAreaColour);
     dc.DrawRectangle(GetClientRect());
 
-    wxBitmap bmpTabs(rect.GetSize());
-    wxMemoryDC memDC(bmpTabs);
-    wxGCDC gcdc(memDC);
+    if(rect.GetSize().x > 0) {
+        wxBitmap bmpTabs(rect.GetSize());
+        wxMemoryDC memDC(bmpTabs);
+        wxGCDC gcdc(memDC);
 
-    gcdc.SetPen(colours.tabAreaColour);
-    gcdc.SetBrush(colours.tabAreaColour);
-    gcdc.DrawRectangle(rect.GetSize());
+        gcdc.SetPen(colours.tabAreaColour);
+        gcdc.SetBrush(colours.tabAreaColour);
+        gcdc.DrawRectangle(rect.GetSize());
 
-    // Loop over the tabs and set their cooridnates
-    DoUpdateCoordiantes(m_tabs);
-    // Get list of tabs that can fit the screen
-    NotebookTab::Vec_t tabs = GetTabsToDraw();
-    // Update the tabs coordinates
-    DoUpdateCoordiantes(tabs);
-    int activeTabInex = wxNOT_FOUND;
-    for(int i = (tabs.size() - 1); i >= 0; --i) {
-        NotebookTab& tab = tabs.at(i);
-        if(tab.IsActive()) {
-            activeTabInex = i;
+        // Loop over the tabs and set their cooridnates
+        DoUpdateCoordiantes(m_tabs);
+        // Get list of tabs that can fit the screen
+        NotebookTab::Vec_t tabs = GetTabsToDraw();
+        // Update the tabs coordinates
+        DoUpdateCoordiantes(tabs);
+        int activeTabInex = wxNOT_FOUND;
+        for(int i = (tabs.size() - 1); i >= 0; --i) {
+            NotebookTab& tab = tabs.at(i);
+            if(tab.IsActive()) {
+                activeTabInex = i;
+            }
+            tab.Draw(gcdc);
         }
-        tab.Draw(gcdc);
-    }
 
-    // Redraw the active tab
-    if(activeTabInex != wxNOT_FOUND) {
-        tabs.at(activeTabInex).Draw(gcdc);
-    }
+        // Redraw the active tab
+        if(activeTabInex != wxNOT_FOUND) {
+            tabs.at(activeTabInex).Draw(gcdc);
+        }
 
-    memDC.SelectObject(wxNullBitmap);
-    dc.DrawBitmap(bmpTabs, 3, 3);
+        memDC.SelectObject(wxNullBitmap);
+        dc.DrawBitmap(bmpTabs, 3, 3);
 
-    if(activeTabInex != wxNOT_FOUND) {
-        const NotebookTab& activeTab = tabs.at(activeTabInex);
-        // Draw 3 lines at the bottom
-        dc.SetPen(colours.activeTabPenColour);
-        dc.SetBrush(colours.activeTabBgColour);
-        wxPoint topLeft = clientRect.GetBottomLeft();
-        wxSize rectSize(clientRect.width, NotebookTab::BOTTOM_AREA_HEIGHT);
-        topLeft.y -= rectSize.GetHeight() - 1;
-        wxRect bottomRect(topLeft, rectSize);
-        // We intentionally move the rect out of the client rect
-        // so the left and right lines will be drawn out of screen
-        bottomRect.x -= 1;
-        bottomRect.width += 2;
-        dc.DrawRectangle(bottomRect);
+        if(activeTabInex != wxNOT_FOUND) {
+            const NotebookTab& activeTab = tabs.at(activeTabInex);
+            // Draw 3 lines at the bottom
+            dc.SetPen(colours.activeTabPenColour);
+            dc.SetBrush(colours.activeTabBgColour);
+            wxPoint topLeft = clientRect.GetBottomLeft();
+            wxSize rectSize(clientRect.width, NotebookTab::BOTTOM_AREA_HEIGHT);
+            topLeft.y -= rectSize.GetHeight() - 1;
+            wxRect bottomRect(topLeft, rectSize);
+            // We intentionally move the rect out of the client rect
+            // so the left and right lines will be drawn out of screen
+            bottomRect.x -= 1;
+            bottomRect.width += 2;
+            dc.DrawRectangle(bottomRect);
 
-        // Draw a line under the active tab
-        // that will erase the line drawn by the above rect
-        wxPoint from, to;
-        from = activeTab.GetRect().GetBottomLeft();
-        to = activeTab.GetRect().GetBottomRight();
-        from.y = bottomRect.GetTopLeft().y;
-        to.y = from.y;
-        from.x += NotebookTab::ANGLE_WIDTH_SMALL + 1;
-        to.x += 2;
+            // Draw a line under the active tab
+            // that will erase the line drawn by the above rect
+            wxPoint from, to;
+            from = activeTab.GetRect().GetBottomLeft();
+            to = activeTab.GetRect().GetBottomRight();
+            from.y = bottomRect.GetTopLeft().y;
+            to.y = from.y;
+            from.x += NotebookTab::ANGLE_WIDTH_SMALL + 1;
+            to.x += 2;
 
-        dc.SetPen(colours.activeTabBgColour);
-        dc.DrawLine(from, to);
+            dc.SetPen(colours.activeTabBgColour);
+            dc.DrawLine(from, to);
+        }
     }
 }
 

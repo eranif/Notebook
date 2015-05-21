@@ -51,7 +51,7 @@ public:
             inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(60);
             inactiveTabInnerPenColour = inactiveTabBgColour.ChangeLightness(105); //.ChangeLightness(70);
 
-            tabAreaColour = wxColour("rgb(64, 64, 64)");
+            tabAreaColour = inactiveTabBgColour.ChangeLightness(120);//wxColour("rgb(64, 64, 64)");
         }
     };
 
