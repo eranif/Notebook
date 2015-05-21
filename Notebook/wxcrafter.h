@@ -4,8 +4,8 @@
 // Do not modify this file by hand!
 //////////////////////////////////////////////////////////////////////
 
-#ifndef NOTEBOOK_NOTEBOOK_WXCRAFTER_BASE_CLASSES_H
-#define NOTEBOOK_NOTEBOOK_WXCRAFTER_BASE_CLASSES_H
+#ifndef WXCRAFTER_BASE_CLASSES_H
+#define WXCRAFTER_BASE_CLASSES_H
 
 #include <wx/settings.h>
 #include <wx/xrc/xmlres.h>
@@ -15,7 +15,7 @@
 #include <wx/artprov.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
-#include <wx/menu.h>
+#include <wx/textctrl.h>
 #if wxVERSION_NUMBER >= 2900
 #include <wx/persist.h>
 #include <wx/persist/toplevel.h>
@@ -26,22 +26,14 @@
 class MainFrameBaseClass : public wxFrame
 {
 protected:
-    wxBoxSizer* boxSizer1;
     wxPanel* m_mainPanel;
-    wxBoxSizer* boxSizer11;
-    wxMenuBar* m_menuBar;
-    wxMenu* m_name6;
-    wxMenuItem* m_menuItem7;
-    wxMenu* m_name8;
-    wxMenuItem* m_menuItem9;
+    wxTextCtrl* m_log;
 
 protected:
-    virtual void OnExit(wxCommandEvent& event) { event.Skip(); }
-    virtual void OnAbout(wxCommandEvent& event) { event.Skip(); }
 
 public:
+    wxTextCtrl* GetLog() { return m_log; }
     wxPanel* GetMainPanel() { return m_mainPanel; }
-    wxMenuBar* GetMenuBar() { return m_menuBar; }
     MainFrameBaseClass(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("My Frame"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(-1,-1), long style = wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxSYSTEM_MENU|wxCLOSE_BOX);
     virtual ~MainFrameBaseClass();
 };

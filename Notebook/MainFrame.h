@@ -10,5 +10,8 @@ public:
 
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
+
+    void OnPageChanged(wxBookCtrlEvent& event);
+    void OnPageChanging(wxBookCtrlEvent& event);
 };
 #endif // MAINFRAME_H
