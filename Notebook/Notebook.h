@@ -48,7 +48,7 @@ public:
 
             inactiveTabTextColour = wxColour("rgb(200, 200, 200)");
             inactiveTabBgColour = activeTabBgColour.ChangeLightness(130);
-            inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(60);
+            inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(80);
             inactiveTabInnerPenColour = inactiveTabBgColour.ChangeLightness(105); //.ChangeLightness(70);
 
             tabAreaColour = inactiveTabBgColour.ChangeLightness(120);//wxColour("rgb(64, 64, 64)");
