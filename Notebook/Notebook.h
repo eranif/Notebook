@@ -9,7 +9,7 @@
 
 #define WXDLLIMPEXP_SDK
 
-class NotebookTab
+class WXDLLIMPEXP_SDK NotebookTab
 {
     wxString m_label;
     wxBitmap m_bitmap;
@@ -39,7 +39,12 @@ public:
         // the tab area colours
         wxColour tabAreaColour;
 
-        Colours()
+        Colours() { 
+            InitDarkColours(); 
+            //InitLightColours();
+        }
+
+        void InitDarkColours()
         {
             activeTabTextColour = "WHITE";
             activeTabBgColour = wxColour(*wxBLACK).ChangeLightness(105);
@@ -51,7 +56,22 @@ public:
             inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(80);
             inactiveTabInnerPenColour = inactiveTabBgColour.ChangeLightness(105); //.ChangeLightness(70);
 
-            tabAreaColour = inactiveTabBgColour.ChangeLightness(120);//wxColour("rgb(64, 64, 64)");
+            tabAreaColour = inactiveTabBgColour.ChangeLightness(120); // wxColour("rgb(64, 64, 64)");
+        }
+        
+        void InitLightColours()
+        {
+            activeTabTextColour = "wxBLACK";
+            activeTabBgColour = "#F8F8F8";
+            activeTabPenColour = "#686868";
+            activeTabInnerPenColour = "#F8F8F8";
+
+            inactiveTabTextColour = "#484848";
+            inactiveTabBgColour = "#B0B0B0";
+            inactiveTabPenColour = "#707070";
+            inactiveTabInnerPenColour = "#B8B8B8";
+
+            tabAreaColour = "#E0E0E0"; // wxColour("rgb(64, 64, 64)");
         }
     };
 
