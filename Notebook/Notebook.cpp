@@ -206,7 +206,7 @@ void NotebookTab::CalculateOffsets(size_t style)
     m_width += X_SPACER;
     m_width += SMALL_CURVE_WIDTH;
     m_width += MAJOR_CURVE_WIDTH;
-    
+
     // Update the rect width
     m_rect.SetWidth(m_width);
 }
@@ -339,7 +339,7 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
         gcdc.DrawRectangle(rect.GetSize());
 
         UpdateVisibleTabs();
-        
+
         int activeTabInex = wxNOT_FOUND;
         for(int i = (m_visibleTabs.size() - 1); i >= 0; --i) {
             NotebookTab::Ptr_t tab = m_visibleTabs.at(i);
@@ -596,13 +596,14 @@ void NotebookTabArea::OnLeftUp(wxMouseEvent& event)
 
     int tabHit, realPos;
     TestPoint(event.GetPosition(), realPos, tabHit);
-
-    if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && m_visibleTabs.at(tabHit)->IsActive()) {
-        // we clicked on the selected index
-        NotebookTab::Ptr_t t = m_visibleTabs.at(tabHit);
-        wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
-        if(xRect.Contains(event.GetPosition())) {
-            CallAfter(&NotebookTabArea::DoDeletePage, realPos);
+    if(tabHit != wxNOT_FOUND) {
+        if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && m_visibleTabs.at(tabHit)->IsActive()) {
+            // we clicked on the selected index
+            NotebookTab::Ptr_t t = m_visibleTabs.at(tabHit);
+            wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
+            if(xRect.Contains(event.GetPosition())) {
+                CallAfter(&NotebookTabArea::DoDeletePage, realPos);
+            }
         }
     }
 }
@@ -715,6 +716,7 @@ bool NotebookTabArea::RemovePage(size_t page, bool notify, bool deletePage)
 
     NotebookTab::Ptr_t tab = m_tabs.at(page);
     m_tabs.erase(m_tabs.begin() + page);
+    m_visibleTabs.clear();
 
     // Choose a new selection
     nextSelection = page;
