@@ -38,7 +38,7 @@ public:
         // the tab area colours
         wxColour tabAreaColour;
         Colours();
-        
+
         void InitDarkColours();
         void InitLightColours();
     };
@@ -92,37 +92,47 @@ public:
     const wxRect& GetRect() const { return m_rect; }
     wxRect& GetRect() { return m_rect; }
     wxWindow* GetWindow() { return m_window; }
+    const wxWindow* GetWindow() const { return m_window; }
     void SetActive(bool active) { this->m_active = active; }
     void SetWindow(wxWindow* window) { this->m_window = window; }
     bool IsActive() const { return m_active; }
 };
 
 class Notebook;
-class NotebookTabArea : public wxPanel
+class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
 {
     int m_height;
     NotebookTab::Vec_t m_tabs;
     friend class Notebook;
+    bool m_dragging;
+    int m_draggingIndex;
 
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
     void OnSize(wxSizeEvent& event);
     void OnLeftDown(wxMouseEvent& event);
+    void OnLeftUp(wxMouseEvent& event);
+    void OnMouseMotion(wxMouseEvent& event);
     /**
      * @brief loop over the tabs and set their coordiantes
      */
     void DoUpdateCoordiantes(NotebookTab::Vec_t& tabs);
     /**
      * @brief get list of tabs to draw. This call always returns the active tab as part of the list
-     * It also ensures that we draw as much tabs as we can
+     * It also ensures that we draw as much tabs as we can.
+     * @param offset reset the 0 based index from m_tabs
      */
-    NotebookTab::Vec_t GetTabsToDraw();
+    void GetVisibleTabs(NotebookTab::Vec_t& tabs, int& offset);
 
     NotebookTab& GetTabInfo(size_t index);
     const NotebookTab& GetTabInfo(size_t index) const;
     NotebookTab& GetTabInfo(wxWindow* page);
     NotebookTab& GetActiveTabInfo();
+    /**
+     * @brief test if pt is on one of the visible tabs return its index
+     */
+    void TestPoint(const wxPoint& pt, NotebookTab::Vec_t& visibleTabs, int& offset, int& selectedIndex);
 
     wxSimplebook* GetBook();
 
@@ -157,7 +167,7 @@ public:
     wxBitmap GetPageImage(size_t index) const;
 };
 
-class Notebook : public wxPanel
+class WXDLLIMPEXP_SDK Notebook : public wxPanel
 {
     wxSimplebook* m_book;
     NotebookTabArea* m_header;

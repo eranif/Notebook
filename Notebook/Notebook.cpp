@@ -3,6 +3,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/dcgraph.h>
 #include <wx/wupdlock.h>
+#include <algorithm>
 
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
@@ -168,6 +169,8 @@ void NotebookTab::CalculateOffsets()
 NotebookTabArea::NotebookTabArea(wxWindow* notebook)
     : wxPanel(notebook)
     , m_height(NotebookTab::TAB_HEIGHT)
+    , m_dragging(false)
+    , m_draggingIndex(wxNOT_FOUND)
 {
     SetSizeHints(wxSize(-1, m_height));
     SetSize(-1, m_height);
@@ -175,14 +178,22 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook)
     Bind(wxEVT_ERASE_BACKGROUND, &NotebookTabArea::OnEraseBG, this);
     Bind(wxEVT_SIZE, &NotebookTabArea::OnSize, this);
     Bind(wxEVT_LEFT_DOWN, &NotebookTabArea::OnLeftDown, this);
+    Bind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
+    Bind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
 }
 
 NotebookTabArea::~NotebookTabArea()
 {
+    if(HasCapture()) {
+        ReleaseMouse();
+    }
+
     Unbind(wxEVT_PAINT, &NotebookTabArea::OnPaint, this);
     Unbind(wxEVT_ERASE_BACKGROUND, &NotebookTabArea::OnEraseBG, this);
     Unbind(wxEVT_SIZE, &NotebookTabArea::OnSize, this);
     Unbind(wxEVT_LEFT_DOWN, &NotebookTabArea::OnLeftDown, this);
+    Unbind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
+    Unbind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
 }
 
 void NotebookTabArea::OnSize(wxSizeEvent& event)
@@ -223,7 +234,10 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
         // Loop over the tabs and set their cooridnates
         DoUpdateCoordiantes(m_tabs);
         // Get list of tabs that can fit the screen
-        NotebookTab::Vec_t tabs = GetTabsToDraw();
+        NotebookTab::Vec_t tabs;
+        int offset;
+        GetVisibleTabs(tabs, offset);
+
         // Update the tabs coordinates
         DoUpdateCoordiantes(tabs);
         int activeTabInex = wxNOT_FOUND;
@@ -290,10 +304,11 @@ void NotebookTabArea::DoUpdateCoordiantes(NotebookTab::Vec_t& tabs)
     }
 }
 
-NotebookTab::Vec_t NotebookTabArea::GetTabsToDraw()
+void NotebookTabArea::GetVisibleTabs(NotebookTab::Vec_t& tabs, int& offset)
 {
     wxRect clientRect(GetClientRect());
-    NotebookTab::Vec_t tabs;
+    tabs.clear();
+    offset = wxNOT_FOUND;
     size_t i = 0;
     bool activeTabIndcluded = false;
     for(; i < m_tabs.size(); ++i) {
@@ -322,24 +337,54 @@ NotebookTab::Vec_t NotebookTabArea::GetTabsToDraw()
             }
         }
     }
-    return tabs;
+
+    // set the offset
+    if(!tabs.empty()) {
+        const NotebookTab& t = tabs.at(0);
+        for(size_t i = 0; i < m_tabs.size(); ++i) {
+            if(m_tabs.at(i).GetWindow() == t.GetWindow()) {
+                offset = i;
+                break;
+            }
+        }
+    }
 }
 
 void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
 {
     event.Skip();
 
+    if(!HasCapture()) {
+        // Capture the mouse, this is needed for DnD
+        CaptureMouse();
+    }
+
     // Get list of visible tabs
-    NotebookTab::Vec_t tabs = GetTabsToDraw();
+    NotebookTab::Vec_t tabs;
+    int offset;
+    GetVisibleTabs(tabs, offset);
+
     // Update the tabs coordinates
     DoUpdateCoordiantes(tabs);
 
     wxPoint pt = event.GetPosition();
+    int activeTabIndex = wxNOT_FOUND;
     for(size_t i = 0; i < tabs.size(); ++i) {
-        if(tabs.at(i).GetRect().Contains(pt)) {
-            SetSelection(i);
-            break;
+        NotebookTab& tab = tabs.at(i);
+        if(tab.IsActive()) {
+            activeTabIndex = i;
         }
+        if(tab.GetRect().Contains(pt) && !tab.IsActive()) {
+            // Changing selection
+            SetSelection(i);
+            return;
+        }
+    }
+
+    // We clicked on the active tab, start DnD operation
+    if(activeTabIndex != wxNOT_FOUND) {
+        m_dragging = true;
+        m_draggingIndex = activeTabIndex;
     }
 }
 
@@ -485,10 +530,60 @@ void NotebookTabArea::SetPageImage(size_t index, const wxBitmap& bmp)
     }
 }
 
+void NotebookTabArea::OnLeftUp(wxMouseEvent& event)
+{
+    event.Skip();
+    m_dragging = false;
+    m_draggingIndex = wxNOT_FOUND;
+    if(HasCapture()) {
+        ReleaseMouse();
+    }
+}
+
+void NotebookTabArea::OnMouseMotion(wxMouseEvent& event)
+{
+    event.Skip();
+    if(m_dragging && (m_draggingIndex != wxNOT_FOUND)) {
+        NotebookTab::Vec_t visibleTabs;
+        int selectedIndex = wxNOT_FOUND;
+        int offset = wxNOT_FOUND;
+        TestPoint(event.GetPosition(), visibleTabs, offset, selectedIndex);
+        if((selectedIndex != wxNOT_FOUND) && (selectedIndex != m_draggingIndex)) {
+            // swap between the two values
+            std::iter_swap(m_tabs.begin() + offset + selectedIndex, m_tabs.begin() + offset + m_draggingIndex);
+            // update the dragging index
+            m_draggingIndex = selectedIndex;
+            Refresh();
+        }
+    } else {
+        // Show tooltip?
+    }
+}
+
+void NotebookTabArea::TestPoint(const wxPoint& pt, NotebookTab::Vec_t& visibleTabs, int& offset, int& selectedIndex)
+{
+    offset = wxNOT_FOUND;
+    GetVisibleTabs(visibleTabs, offset);
+    if(visibleTabs.empty()) return;
+
+    // Update the tabs coordinates
+    DoUpdateCoordiantes(visibleTabs);
+
+    selectedIndex = wxNOT_FOUND;
+    for(size_t i = 0; i < visibleTabs.size(); ++i) {
+        NotebookTab& tab = visibleTabs.at(i);
+        if(tab.GetRect().Contains(pt)) {
+            // Changing selection
+            selectedIndex = i;
+            return;
+        }
+    }
+}
+
 NotebookTab::Colours::Colours()
 {
-    InitDarkColours();
-    // InitLightColours();
+    //InitDarkColours();
+    InitLightColours();
 }
 
 void NotebookTab::Colours::InitDarkColours()
