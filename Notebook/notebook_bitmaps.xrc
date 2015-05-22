@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- wxrc /n Notebook_Init_Bitmaps /c /v /o notebook_bitmaps.cpp notebook_bitmaps.xrc -->
 <resource>
-    <object class="wxBitmap" name="dark-background">bitmaps/dark-background.png</object>
-    <object class="wxBitmap" name="dark-left-inactive">bitmaps/dark-left-inactive.png</object>
-    <object class="wxBitmap" name="dark-right-inactive">bitmaps/dark-right-inactive.png</object>
-    <object class="wxBitmap" name="dark-middle-inactive">bitmaps/dark-middle-inactive.png</object>
-    <object class="wxBitmap" name="dark-left-active">bitmaps/dark-left-active.png</object>
-    <object class="wxBitmap" name="dark-right-active">bitmaps/dark-right-active.png</object>
-    <object class="wxBitmap" name="dark-middle-active">bitmaps/dark-middle-active.png</object>
+    <object class="wxBitmap" name="notebook-dark-x">bitmaps/fileclose-dark.png</object>
+    <object class="wxBitmap" name="notebook-light-x">bitmaps/fileclose.png</object>
 </resource>

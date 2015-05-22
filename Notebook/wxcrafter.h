@@ -4,8 +4,8 @@
 // Do not modify this file by hand!
 //////////////////////////////////////////////////////////////////////
 
-#ifndef WXCRAFTER_BASE_CLASSES_H
-#define WXCRAFTER_BASE_CLASSES_H
+#ifndef NOTEBOOK_NOTEBOOK_WXCRAFTER_BASE_CLASSES_H
+#define NOTEBOOK_NOTEBOOK_WXCRAFTER_BASE_CLASSES_H
 
 #include <wx/settings.h>
 #include <wx/xrc/xmlres.h>
@@ -13,6 +13,7 @@
 #include <wx/frame.h>
 #include <wx/iconbndl.h>
 #include <wx/artprov.h>
+#include <wx/menu.h>
 #include <wx/sizer.h>
 #include <wx/panel.h>
 #include <wx/textctrl.h>
@@ -29,13 +30,36 @@
 
 class MainFrameBaseClass : public wxFrame
 {
+public:
+    enum {
+        ID_CLOSE_ALLOW_TAB_MOVE = 1001,
+        ID_CLOSE_BUTTON = 1002,
+        ID_STYLE_DARK = 1003,
+        ID_STYLE_LIGHT = 1004,
+    };
 protected:
+    wxMenuBar* m_menuBar19;
+    wxMenu* m_menu21;
+    wxMenu* m_menu29;
+    wxMenuItem* m_styleDark;
+    wxMenuItem* m_styleLight;
+    wxMenuItem* m_menuItemMove;
+    wxMenuItem* m_menuItem35;
+    wxMenuItem* m_separator;
+    wxMenuItem* Exit;
+    wxBoxSizer* boxSizer1;
     wxPanel* m_mainPanel;
+    wxBoxSizer* boxSizer11;
     wxTextCtrl* m_log;
 
 protected:
+    virtual void OnTabStyle(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnAllowTabMove(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnShowCloseButton(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnClose(wxCommandEvent& event) { event.Skip(); }
 
 public:
+    wxMenuBar* GetMenuBar19() { return m_menuBar19; }
     wxTextCtrl* GetLog() { return m_log; }
     wxPanel* GetMainPanel() { return m_mainPanel; }
     MainFrameBaseClass(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("My Frame"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(-1,-1), long style = wxCAPTION|wxRESIZE_BORDER|wxMAXIMIZE_BOX|wxMINIMIZE_BOX|wxSYSTEM_MENU|wxCLOSE_BOX);

@@ -23,14 +23,40 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
         bBitmapLoaded = true;
     }
     
-    wxBoxSizer* boxSizer1 = new wxBoxSizer(wxVERTICAL);
+    m_menuBar19 = new wxMenuBar(0);
+    this->SetMenuBar(m_menuBar19);
+    
+    m_menu21 = new wxMenu();
+    m_menuBar19->Append(m_menu21, _("File"));
+    
+    m_menu29 = new wxMenu();
+    m_menu21->AppendSubMenu(m_menu29, _("Style"));
+    
+    m_styleDark = new wxMenuItem(m_menu29, ID_STYLE_DARK, _("Dark Tabs"), wxT(""), wxITEM_NORMAL);
+    m_menu29->Append(m_styleDark);
+    
+    m_styleLight = new wxMenuItem(m_menu29, ID_STYLE_LIGHT, _("Light Tabs"), wxT(""), wxITEM_NORMAL);
+    m_menu29->Append(m_styleLight);
+    
+    m_menuItemMove = new wxMenuItem(m_menu21, ID_CLOSE_ALLOW_TAB_MOVE, _("Allow tabs to move"), wxT(""), wxITEM_CHECK);
+    m_menu21->Append(m_menuItemMove);
+    
+    m_menuItem35 = new wxMenuItem(m_menu21, ID_CLOSE_BUTTON, _("Show Close Button"), wxT(""), wxITEM_CHECK);
+    m_menu21->Append(m_menuItem35);
+    
+    m_menu21->AppendSeparator();
+    
+    Exit = new wxMenuItem(m_menu21, wxID_EXIT, _("Exit\tAlt-F4"), wxT(""), wxITEM_NORMAL);
+    m_menu21->Append(Exit);
+    
+    boxSizer1 = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(boxSizer1);
     
     m_mainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL);
     
     boxSizer1->Add(m_mainPanel, 1, wxEXPAND, 5);
     
-    wxBoxSizer* boxSizer11 = new wxBoxSizer(wxVERTICAL);
+    boxSizer11 = new wxBoxSizer(wxVERTICAL);
     m_mainPanel->SetSizer(boxSizer11);
     
     m_log = new wxTextCtrl(m_mainPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(-1,-1), wxTE_RICH|wxTE_MULTILINE);
@@ -50,10 +76,23 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
         wxPersistenceManager::Get().Restore(this);
     }
 #endif
+    // Connect events
+    this->Connect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Connect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Connect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
+    this->Connect(m_menuItem35->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+    this->Connect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
+    
 }
 
 MainFrameBaseClass::~MainFrameBaseClass()
 {
+    this->Disconnect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Disconnect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Disconnect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
+    this->Disconnect(m_menuItem35->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+    this->Disconnect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
+    
 }
 
 DemoAppImages::DemoAppImages()

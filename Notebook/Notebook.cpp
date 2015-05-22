@@ -4,9 +4,14 @@
 #include <wx/dcgraph.h>
 #include <wx/wupdlock.h>
 #include <algorithm>
+#include <wx/image.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/xrc/xh_bmp.h>
 
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
+
+extern void Notebook_Init_Bitmaps();
 
 Notebook::Notebook(wxWindow* parent,
                    wxWindowID id,
@@ -16,12 +21,21 @@ Notebook::Notebook(wxWindow* parent,
                    const wxString& name)
     : wxPanel(parent, id, pos, size, style, name)
 {
+    static bool once = false;
+    if(!once) {
+        // Add PNG and Bitmap handler
+        wxImage::AddHandler(new wxPNGHandler);
+        wxXmlResource::Get()->AddHandler(new wxBitmapXmlHandler);
+        Notebook_Init_Bitmaps();
+        once = true;
+    }
+
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     SetSizer(sizer);
 
-    m_header = new NotebookTabArea(this);
+    m_header = new NotebookTabArea(this, style);
     sizer->Add(m_header, 0, wxEXPAND);
-    m_book = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, style);
+    m_book = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
     sizer->Add(m_book, 1, wxEXPAND);
     Layout();
 }
@@ -30,8 +44,8 @@ Notebook::~Notebook() {}
 
 void Notebook::AddPage(wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp)
 {
-    NotebookTab tab(page, label, bmp);
-    tab.SetActive(selected);
+    NotebookTab tab(GetStyle(), page, label, bmp);
+    tab.SetActive(selected, GetStyle());
     m_header->AddPage(tab);
 }
 
@@ -47,34 +61,48 @@ void Notebook::DoChangeSelection(wxWindow* page)
 
 bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp)
 {
-    NotebookTab tab(page, label, bmp);
-    tab.SetActive(selected);
+    NotebookTab tab(GetStyle(), page, label, bmp);
+    tab.SetActive(selected, GetStyle());
     return m_header->InsertPage(index, tab);
 }
+
+void Notebook::SetStyle(size_t style)
+{
+    m_header->SetStyle(style);
+    Refresh();
+}
+
+wxWindow* Notebook::GetCurrentPage() const
+{
+    if(m_header->GetSelection() == wxNOT_FOUND) return NULL;
+    return m_header->GetPage(m_header->GetSelection());
+}
+
+int Notebook::FindPage(wxWindow* page) const { return m_header->FindPage(page); }
 
 //----------------------------------------------------------
 // Tab label
 //----------------------------------------------------------
-void NotebookTab::Draw(wxDC& dc)
+void NotebookTab::Draw(wxDC& dc, const NotebookTab::Colours& colours, size_t style)
 {
-    Colours colours;
     const int TOP_SMALL_HEIGHT = 2;
+    m_xRect = wxRect();
     wxColour bgColour(IsActive() ? colours.activeTabBgColour : colours.inactiveTabBgColour);
     wxColour penColour(IsActive() ? colours.activeTabPenColour : colours.inactiveTabPenColour);
     {
         wxPoint points[6];
         points[0] = m_rect.GetBottomLeft();
 
-        points[1].x = points[0].x + ANGLE_WIDTH;
+        points[1].x = points[0].x + MAJOR_CURVE_WIDTH;
         points[1].y = m_rect.GetLeftTop().y + TOP_SMALL_HEIGHT;
 
-        points[2].x = points[1].x + ANGLE_WIDTH_SMALL;
+        points[2].x = points[1].x + SMALL_CURVE_WIDTH;
         points[2].y = points[1].y - TOP_SMALL_HEIGHT;
 
-        points[3].x = points[0].x + (m_rect.GetWidth() - (ANGLE_WIDTH + ANGLE_WIDTH_SMALL));
+        points[3].x = points[0].x + (m_rect.GetWidth() - (MAJOR_CURVE_WIDTH + SMALL_CURVE_WIDTH));
         points[3].y = points[2].y;
 
-        points[4].x = points[3].x + ANGLE_WIDTH_SMALL;
+        points[4].x = points[3].x + SMALL_CURVE_WIDTH;
         points[4].y = points[3].y + TOP_SMALL_HEIGHT;
 
         points[5] = m_rect.GetBottomRight();
@@ -89,16 +117,16 @@ void NotebookTab::Draw(wxDC& dc)
         points[0] = m_rect.GetBottomLeft();
         points[0].x += 1;
 
-        points[1].x = points[0].x + ANGLE_WIDTH;
+        points[1].x = points[0].x + MAJOR_CURVE_WIDTH;
         points[1].y = m_rect.GetLeftTop().y + TOP_SMALL_HEIGHT + 1;
 
-        points[2].x = points[1].x + ANGLE_WIDTH_SMALL;
+        points[2].x = points[1].x + SMALL_CURVE_WIDTH;
         points[2].y = points[1].y - TOP_SMALL_HEIGHT;
 
-        points[3].x = points[0].x + (m_rect.GetWidth() - 2 - (ANGLE_WIDTH + ANGLE_WIDTH_SMALL));
+        points[3].x = points[0].x + (m_rect.GetWidth() - 2 - (MAJOR_CURVE_WIDTH + SMALL_CURVE_WIDTH));
         points[3].y = points[2].y;
 
-        points[4].x = points[3].x + ANGLE_WIDTH_SMALL;
+        points[4].x = points[3].x + SMALL_CURVE_WIDTH;
         points[4].y = points[3].y + TOP_SMALL_HEIGHT;
 
         points[5] = m_rect.GetBottomRight();
@@ -117,7 +145,7 @@ void NotebookTab::Draw(wxDC& dc)
     // Draw the text
     dc.SetTextForeground(IsActive() ? colours.activeTabTextColour : colours.inactiveTabTextColour);
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
-#ifdef __WXOSX__    
+#ifdef __WXOSX__
     font.SetPointSize(10);
 #else
     font.SetPointSize(9);
@@ -125,9 +153,14 @@ void NotebookTab::Draw(wxDC& dc)
 
     dc.SetFont(font);
     dc.DrawText(m_label, m_textX + m_rect.GetX(), m_textY);
+
+    if(IsActive() && (style & kNotebook_CloseButtonOnActiveTab)) {
+        m_xRect = wxRect(m_bmpCloseX + m_rect.GetX(), m_bmpCloseY, 12, 12);
+        dc.DrawBitmap(colours.closeButton, m_bmpCloseX + m_rect.GetX(), m_bmpCloseY);
+    }
 }
 
-void NotebookTab::CalculateOffsets()
+void NotebookTab::CalculateOffsets(size_t style)
 {
     wxBitmap b(1, 1);
     wxMemoryDC memDC(b);
@@ -138,8 +171,8 @@ void NotebookTab::CalculateOffsets()
     m_rect.SetHeight(TAB_HEIGHT);
 
     int width = 0;
-    width += ANGLE_WIDTH;
-    width += ANGLE_WIDTH_SMALL;
+    width += MAJOR_CURVE_WIDTH;
+    width += SMALL_CURVE_WIDTH;
     width += X_SPACER;
 
     // bitmap
@@ -157,26 +190,47 @@ void NotebookTab::CalculateOffsets()
     m_textY = ((m_rect.GetHeight() - sz.y) / 2);
     width += sz.x;
 
-    if(m_active) {
-        // x button
+    // x button
+    if(IsActive() && (style & kNotebook_CloseButtonOnActiveTab)) {
         width += X_SPACER;
-        width += 10; // X button is 10 pixels in size
+        m_bmpCloseX = width;
+        m_bmpCloseY = ((m_rect.GetHeight() - 12) / 2);
+        width += 12; // X button is 10 pixels in size
     }
-    
+
     width += X_SPACER;
-    width += ANGLE_WIDTH_SMALL;
-    width += ANGLE_WIDTH;
+    width += SMALL_CURVE_WIDTH;
+    width += MAJOR_CURVE_WIDTH;
     m_rect.SetWidth(width);
+}
+
+void NotebookTab::SetBitmap(const wxBitmap& bitmap, size_t style)
+{
+    this->m_bitmap = bitmap;
+    CalculateOffsets(style);
+}
+
+void NotebookTab::SetLabel(const wxString& label, size_t style)
+{
+    this->m_label = label;
+    CalculateOffsets(style);
+}
+
+void NotebookTab::SetActive(bool active, size_t style)
+{
+    this->m_active = active;
+    CalculateOffsets(style);
 }
 
 //----------------------------------------------------------
 // Notebook header
 //----------------------------------------------------------
-NotebookTabArea::NotebookTabArea(wxWindow* notebook)
+NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
     : wxPanel(notebook)
     , m_height(NotebookTab::TAB_HEIGHT)
     , m_dragging(false)
     , m_draggingIndex(wxNOT_FOUND)
+    , m_style(style)
 {
     SetSizeHints(wxSize(-1, m_height));
     SetSize(-1, m_height);
@@ -186,6 +240,11 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook)
     Bind(wxEVT_LEFT_DOWN, &NotebookTabArea::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
     Bind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
+    if(m_style & kNotebook_DarkTabs) {
+        m_colours.InitDarkColours();
+    } else {
+        m_colours.InitLightColours();
+    }
 }
 
 NotebookTabArea::~NotebookTabArea()
@@ -223,9 +282,8 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
     rect.SetWidth(rect.GetWidth() - 16);
 
     // Draw background
-    NotebookTab::Colours colours;
-    dc.SetPen(colours.tabAreaColour);
-    dc.SetBrush(colours.tabAreaColour);
+    dc.SetPen(m_colours.tabAreaColour);
+    dc.SetBrush(m_colours.tabAreaColour);
     dc.DrawRectangle(GetClientRect());
 
     if(rect.GetSize().x > 0) {
@@ -233,8 +291,8 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
         wxMemoryDC memDC(bmpTabs);
         wxGCDC gcdc(memDC);
 
-        gcdc.SetPen(colours.tabAreaColour);
-        gcdc.SetBrush(colours.tabAreaColour);
+        gcdc.SetPen(m_colours.tabAreaColour);
+        gcdc.SetBrush(m_colours.tabAreaColour);
         gcdc.DrawRectangle(rect.GetSize());
 
         // Loop over the tabs and set their cooridnates
@@ -252,12 +310,12 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
             if(tab.IsActive()) {
                 activeTabInex = i;
             }
-            tab.Draw(gcdc);
+            tab.Draw(gcdc, m_colours, m_style);
         }
 
         // Redraw the active tab
         if(activeTabInex != wxNOT_FOUND) {
-            tabs.at(activeTabInex).Draw(gcdc);
+            tabs.at(activeTabInex).Draw(gcdc, m_colours, m_style);
         }
 
         memDC.SelectObject(wxNullBitmap);
@@ -266,8 +324,8 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
         if(activeTabInex != wxNOT_FOUND) {
             const NotebookTab& activeTab = tabs.at(activeTabInex);
             // Draw 3 lines at the bottom
-            dc.SetPen(colours.activeTabPenColour);
-            dc.SetBrush(colours.activeTabBgColour);
+            dc.SetPen(m_colours.activeTabPenColour);
+            dc.SetBrush(m_colours.activeTabBgColour);
             wxPoint topLeft = clientRect.GetBottomLeft();
             wxSize rectSize(clientRect.width, NotebookTab::BOTTOM_AREA_HEIGHT);
             topLeft.y -= rectSize.GetHeight() - 1;
@@ -293,7 +351,7 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
             // from.x += NotebookTab::ANGLE_WIDTH_SMALL + 1;
             // to.x += 2;
 
-            dc.SetPen(colours.activeTabBgColour);
+            dc.SetPen(m_colours.activeTabBgColour);
             dc.DrawLine(from, to);
 #ifdef __WXOSX__
             dc.DrawLine(from, to);
@@ -311,7 +369,7 @@ void NotebookTabArea::DoUpdateCoordiantes(NotebookTab::Vec_t& tabs)
         NotebookTab& tab = tabs.at(i);
         tab.GetRect().SetX(xx);
         tab.GetRect().SetY(0);
-        xx += tab.GetRect().GetWidth() - NotebookTab::ANGLE_WIDTH;
+        xx += tab.GetRect().GetWidth() - NotebookTab::MAJOR_CURVE_WIDTH;
     }
 }
 
@@ -364,6 +422,8 @@ void NotebookTabArea::GetVisibleTabs(NotebookTab::Vec_t& tabs, int& offset)
 void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
 {
     event.Skip();
+    m_dragging = false;
+    m_draggingIndex = wxNOT_FOUND;
 
     if(!HasCapture()) {
         // Capture the mouse, this is needed for DnD
@@ -393,7 +453,7 @@ void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
     }
 
     // We clicked on the active tab, start DnD operation
-    if(activeTabIndex != wxNOT_FOUND) {
+    if((m_style & kNotebook_AllowDnD) && (activeTabIndex != wxNOT_FOUND)) {
         m_dragging = true;
         m_draggingIndex = activeTabIndex;
     }
@@ -402,10 +462,11 @@ void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
 void NotebookTabArea::ChangeSelection(size_t tabIdx)
 {
     wxWindowUpdateLocker locker(GetParent());
-    if(tabIdx >= m_tabs.size()) return; // cant happen...
+    if(!IsIndexValid(tabIdx)) return;
+
     for(size_t i = 0; i < m_tabs.size(); ++i) {
         NotebookTab& tab = m_tabs.at(i);
-        tab.SetActive(i == tabIdx);
+        tab.SetActive((i == tabIdx), GetStyle());
     }
 
     NotebookTab& activeTab = GetActiveTabInfo();
@@ -453,14 +514,14 @@ int NotebookTabArea::GetSelection() const
 NotebookTab& NotebookTabArea::GetTabInfo(size_t index)
 {
     static NotebookTab NullTab;
-    if(index >= m_tabs.size()) return NullTab;
+    if(!IsIndexValid(index)) return NullTab;
     return m_tabs.at(index);
 }
 
 const NotebookTab& NotebookTabArea::GetTabInfo(size_t index) const
 {
     static NotebookTab NullTab;
-    if(index >= m_tabs.size()) return NullTab;
+    if(!IsIndexValid(index)) return NullTab;
     return m_tabs.at(index);
 }
 
@@ -478,7 +539,7 @@ bool NotebookTabArea::SetPageText(size_t page, const wxString& text)
 {
     NotebookTab& tab = GetTabInfo(page);
     if(!tab.IsOk()) return false;
-    tab.SetLabel(text);
+    tab.SetLabel(text, GetStyle());
     Refresh();
     return true;
 }
@@ -500,7 +561,7 @@ wxSimplebook* NotebookTabArea::GetBook() { return reinterpret_cast<Notebook*>(Ge
 
 bool NotebookTabArea::InsertPage(size_t index, NotebookTab tab)
 {
-    if(index > m_tabs.size()) return false; // out of bounds
+    if(index > m_tabs.size()) return false;
     m_tabs.insert(m_tabs.begin() + index, tab);
 
     int tabIndex = index;
@@ -536,7 +597,7 @@ void NotebookTabArea::SetPageImage(size_t index, const wxBitmap& bmp)
 {
     NotebookTab& tab = GetTabInfo(index);
     if(tab.IsOk()) {
-        tab.SetBitmap(bmp);
+        tab.SetBitmap(bmp, GetStyle());
         Refresh();
     }
 }
@@ -591,11 +652,30 @@ void NotebookTabArea::TestPoint(const wxPoint& pt, NotebookTab::Vec_t& visibleTa
     }
 }
 
-NotebookTab::Colours::Colours()
+void NotebookTabArea::SetStyle(size_t style)
 {
-    InitDarkColours();
-    //InitLightColours();
+    this->m_style = style;
+    if(style & kNotebook_DarkTabs) {
+        m_colours.InitDarkColours();
+    } else {
+        m_colours.InitLightColours();
+    }
+
+    for(size_t i = 0; i < m_tabs.size(); ++i) {
+        m_tabs.at(i).CalculateOffsets(GetStyle());
+    }
+    Refresh();
 }
+
+wxWindow* NotebookTabArea::GetPage(size_t index) const
+{
+    const NotebookTab& tab = GetTabInfo(index);
+    return tab.GetWindow();
+}
+
+bool NotebookTabArea::IsIndexValid(size_t index) const { return (index < m_tabs.size()); }
+
+NotebookTab::Colours::Colours() { InitDarkColours(); }
 
 void NotebookTab::Colours::InitDarkColours()
 {
@@ -610,6 +690,8 @@ void NotebookTab::Colours::InitDarkColours()
     inactiveTabInnerPenColour = wxColour("#535252");
 
     tabAreaColour = wxColour("#131111");
+    // 12x12 bitmap
+    closeButton = wxXmlResource::Get()->LoadBitmap("notebook-dark-x");
 }
 
 void NotebookTab::Colours::InitLightColours()
@@ -625,4 +707,16 @@ void NotebookTab::Colours::InitLightColours()
     inactiveTabInnerPenColour = "#ffffff";
 
     tabAreaColour = "#dcdcdc"; // wxColour("rgb(64, 64, 64)");
+    // 12x12 bitmap
+    closeButton = wxXmlResource::Get()->LoadBitmap("notebook-light-x");
+}
+
+int NotebookTabArea::FindPage(wxWindow* page) const
+{
+    for(size_t i=0; i<m_tabs.size(); ++i) {
+        if(m_tabs.at(i).GetWindow() == page) {
+            return i;
+        }
+    }
+    return wxNOT_FOUND;
 }
