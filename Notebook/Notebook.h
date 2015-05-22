@@ -6,6 +6,7 @@
 #include <vector>
 #include <wx/settings.h>
 #include <wx/dcmemory.h>
+#include <wx/sharedptr.h>
 
 #define WXDLLIMPEXP_SDK
 
@@ -37,7 +38,8 @@ class WXDLLIMPEXP_SDK NotebookTab
     int m_bmpY;
     int m_bmpCloseX;
     int m_bmpCloseY;
-    wxRect m_xRect; // The x button rect
+    int m_width;
+    int m_height;
 
 public:
     struct WXDLLIMPEXP_SDK Colours {
@@ -78,7 +80,9 @@ public:
     void CalculateOffsets(size_t style);
 
 public:
-    typedef std::vector<NotebookTab> Vec_t;
+    typedef wxSharedPtr<NotebookTab> Ptr_t;
+    typedef std::vector<NotebookTab::Ptr_t> Vec_t;
+
     NotebookTab()
         : m_window(NULL)
         , m_active(false)
@@ -103,7 +107,8 @@ public:
 
     virtual ~NotebookTab() {}
 
-    bool IsOk() const { return m_window != NULL; }
+    bool IsValid() const { return m_window != NULL; }
+    
     /**
      * @brief render the using the provided wxDC
      */
@@ -120,6 +125,10 @@ public:
     wxWindow* GetWindow() const { return m_window; }
     void SetWindow(wxWindow* window) { this->m_window = window; }
     bool IsActive() const { return m_active; }
+    int GetBmpCloseX() const { return m_bmpCloseX; }
+    int GetBmpCloseY() const { return m_bmpCloseY; }
+    int GetHeight() const { return m_height; }
+    int GetWidth() const { return m_width; }
 };
 
 class Notebook;
@@ -133,10 +142,9 @@ class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
     int m_height;
     NotebookTab::Vec_t m_tabs;
     friend class Notebook;
-    bool m_dragging;
-    int m_draggingIndex;
     size_t m_style;
     NotebookTab::Colours m_colours;
+    NotebookTab::Vec_t m_visibleTabs;
 
 protected:
     void OnPaint(wxPaintEvent& e);
@@ -145,6 +153,13 @@ protected:
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
     void OnMouseMotion(wxMouseEvent& event);
+    int DoGetPageIndex(wxWindow* win) const;
+    
+    bool ShiftRight(NotebookTab::Vec_t& tabs);
+    bool IsActiveTabInList(const NotebookTab::Vec_t& tabs) const;
+    bool IsActiveTabVisible(const NotebookTab::Vec_t& tabs) const;
+
+
     /**
      * @brief loop over the tabs and set their coordiantes
      */
@@ -154,28 +169,34 @@ protected:
      * It also ensures that we draw as much tabs as we can.
      * @param offset reset the 0 based index from m_tabs
      */
-    void GetVisibleTabs(NotebookTab::Vec_t& tabs, int& offset);
+    void UpdateVisibleTabs();
 
-    NotebookTab& GetTabInfo(size_t index);
-    const NotebookTab& GetTabInfo(size_t index) const;
-    NotebookTab& GetTabInfo(wxWindow* page);
-    NotebookTab& GetActiveTabInfo();
+    NotebookTab::Ptr_t GetTabInfo(size_t index);
+    NotebookTab::Ptr_t GetTabInfo(size_t index) const;
+    NotebookTab::Ptr_t GetTabInfo(wxWindow* page);
+    NotebookTab::Ptr_t GetActiveTabInfo();
+
     /**
      * @brief test if pt is on one of the visible tabs return its index
+     * @param pt mouse click position
+     * @param realPosition the index position in the m_tabs array
+     * @param tabHit the inedx position in the m_visibleTabs array
      */
-    void TestPoint(const wxPoint& pt, NotebookTab::Vec_t& visibleTabs, int& offset, int& selectedIndex);
+    void TestPoint(const wxPoint& pt, int& realPosition, int& tabHit);
 
     wxSimplebook* GetBook();
+
+    void DoDeletePage(size_t page) { RemovePage(page, true, true); }
 
 public:
     NotebookTabArea(wxWindow* notebook, size_t style);
     virtual ~NotebookTabArea();
-    
+
     /**
      * @brief return true if index is in the tabs vector range
      */
     bool IsIndexValid(size_t index) const;
-    
+
     void SetStyle(size_t style);
     size_t GetStyle() const { return m_style; }
 
@@ -199,14 +220,15 @@ public:
     bool SetPageText(size_t page, const wxString& text);
     wxString GetPageText(size_t page) const;
 
-    void AddPage(NotebookTab tab);
-    bool InsertPage(size_t index, NotebookTab tab);
+    void AddPage(NotebookTab::Ptr_t tab);
+    bool InsertPage(size_t index, NotebookTab::Ptr_t tab);
 
     void SetPageImage(size_t index, const wxBitmap& bmp);
     wxBitmap GetPageImage(size_t index) const;
     wxWindow* GetPage(size_t index) const;
-    
+
     int FindPage(wxWindow* page) const;
+    bool RemovePage(size_t page, bool notify, bool deletePage);
 };
 
 /**
@@ -265,17 +287,27 @@ public:
                     const wxString& label,
                     bool selected = false,
                     const wxBitmap& bmp = wxNullBitmap);
-    
+
     /**
      * @brief return the currently selected page or null
      */
-    wxWindow* GetCurrentPage() const; 
-    
+    wxWindow* GetCurrentPage() const;
+
     /**
      * @brief Returns the index of the specified tab window or wxNOT_FOUND if not found
      */
     int FindPage(wxWindow* page) const;
-    
+
+    /**
+     * @brief Deletes the specified page, without deleting the associated window
+     */
+    bool RemovePage(size_t page);
+
+    /**
+     * @brief Deletes the specified page and the associated window
+     */
+    bool DeletePage(size_t page);
+
     /**
      * @brief set a new selection. This function fires an event that can be vetoed
      */
@@ -323,5 +355,7 @@ public:
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
+wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSING, wxBookCtrlEvent);
+wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSED, wxBookCtrlEvent);
 
 #endif // NOTEBOOK_H
