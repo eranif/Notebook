@@ -117,7 +117,12 @@ void NotebookTab::Draw(wxDC& dc)
     // Draw the text
     dc.SetTextForeground(IsActive() ? colours.activeTabTextColour : colours.inactiveTabTextColour);
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+#ifdef __WXOSX__    
+    font.SetPointSize(10);
+#else
     font.SetPointSize(9);
+#endif
+
     dc.SetFont(font);
     dc.DrawText(m_label, m_textX + m_rect.GetX(), m_textY);
 }
@@ -157,7 +162,8 @@ void NotebookTab::CalculateOffsets()
         width += X_SPACER;
         width += 10; // X button is 10 pixels in size
     }
-
+    
+    width += X_SPACER;
     width += ANGLE_WIDTH_SMALL;
     width += ANGLE_WIDTH;
     m_rect.SetWidth(width);
@@ -289,6 +295,11 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
 
             dc.SetPen(colours.activeTabBgColour);
             dc.DrawLine(from, to);
+#ifdef __WXOSX__
+            dc.DrawLine(from, to);
+            dc.DrawLine(from, to);
+            dc.DrawLine(from, to);
+#endif
         }
     }
 }
@@ -582,8 +593,8 @@ void NotebookTabArea::TestPoint(const wxPoint& pt, NotebookTab::Vec_t& visibleTa
 
 NotebookTab::Colours::Colours()
 {
-    //InitDarkColours();
-    InitLightColours();
+    InitDarkColours();
+    //InitLightColours();
 }
 
 void NotebookTab::Colours::InitDarkColours()

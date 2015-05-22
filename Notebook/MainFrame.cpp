@@ -7,18 +7,14 @@
 MainFrame::MainFrame(wxWindow* parent)
     : MainFrameBaseClass(parent)
 {
+    DemoAppImages images;
     Notebook* book = new Notebook(m_mainPanel);
     m_mainPanel->GetSizer()->Insert(0, book, 1, wxEXPAND | wxALL, 0);
     m_mainPanel->GetSizer()->Layout();
     
-    wxFileName bmpFile(wxStandardPaths::Get().GetExecutablePath());
-    bmpFile.SetFullName("blocks.png");
-    bmpFile.RemoveLastDir();
-    bmpFile.RemoveLastDir();
+    wxBitmap settings = images.Bitmap("settings");
+    wxBitmap blocks = images.Bitmap("blocks");
     
-    wxBitmap cubes(bmpFile.GetFullPath(), wxBITMAP_TYPE_PNG);
-    bmpFile.SetFullName("settings.png");
-    wxBitmap bmp(bmpFile.GetFullPath(), wxBITMAP_TYPE_PNG);
     book->AddPage(new wxTextCtrl(book, wxID_ANY, "Page One", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                   "Page One",
                   false);
@@ -35,10 +31,9 @@ MainFrame::MainFrame(wxWindow* parent)
     book->AddPage(new wxTextCtrl(book, wxID_ANY, "Page Six", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                   "Page Six",
                   true);
-    book->SetPageImage(0, cubes);
-    book->SetPageText(0, "Long Long Text");
-    
-    book->SetPageImage(4, bmp);
+    book->SetPageImage(0, blocks);
+    book->SetPageText(0, "Colourful Blocks!");
+    book->SetPageImage(4, settings);
     
     book->Bind(wxEVT_BOOK_PAGE_CHANGED, &MainFrame::OnPageChanged, this);
     book->Bind(wxEVT_BOOK_PAGE_CHANGING, &MainFrame::OnPageChanging, this);
