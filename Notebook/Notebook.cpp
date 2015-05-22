@@ -57,7 +57,7 @@ bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, b
 void NotebookTab::Draw(wxDC& dc)
 {
     Colours colours;
-    const int TOP_SMALL_HEIGHT = 3;
+    const int TOP_SMALL_HEIGHT = 2;
     wxColour bgColour(IsActive() ? colours.activeTabBgColour : colours.inactiveTabBgColour);
     wxColour penColour(IsActive() ? colours.activeTabPenColour : colours.inactiveTabPenColour);
     {
@@ -129,7 +129,7 @@ void NotebookTab::CalculateOffsets()
     font.SetPointSize(10);
     memDC.SetFont(font);
     wxSize sz = memDC.GetTextExtent(m_label);
-    m_rect.SetHeight(sz.y + (2 * Y_SPACER));
+    m_rect.SetHeight(TAB_HEIGHT);
 
     int width = 0;
     width += ANGLE_WIDTH;
@@ -167,7 +167,7 @@ void NotebookTab::CalculateOffsets()
 //----------------------------------------------------------
 NotebookTabArea::NotebookTabArea(wxWindow* notebook)
     : wxPanel(notebook)
-    , m_height(30)
+    , m_height(NotebookTab::TAB_HEIGHT)
 {
     SetSizeHints(wxSize(-1, m_height));
     SetSize(-1, m_height);
@@ -199,7 +199,7 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
     if(clientRect.width <= 3) return;
 
     wxRect rect(GetClientRect());
-    rect.Deflate(3);
+    rect.Deflate(0);
 
     // Reudce the length of the tabs bitmap by 16 pixles (we will draw there the drop down
     // button)
@@ -241,7 +241,7 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
         }
 
         memDC.SelectObject(wxNullBitmap);
-        dc.DrawBitmap(bmpTabs, 3, 3);
+        dc.DrawBitmap(bmpTabs, 0, 0);
 
         if(activeTabInex != wxNOT_FOUND) {
             const NotebookTab& activeTab = tabs.at(activeTabInex);
@@ -263,10 +263,15 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
             wxPoint from, to;
             from = activeTab.GetRect().GetBottomLeft();
             to = activeTab.GetRect().GetBottomRight();
-            from.y = bottomRect.GetTopLeft().y;
-            to.y = from.y;
-            from.x += NotebookTab::ANGLE_WIDTH_SMALL + 1;
-            to.x += 2;
+            from.y -= NotebookTab::BOTTOM_AREA_HEIGHT - 1;
+            from.x += 2;
+            to.y -= NotebookTab::BOTTOM_AREA_HEIGHT - 1;
+            to.x -= 1;
+
+            // from.y = bottomRect.GetTopLeft().y;
+            // to.y = from.y;
+            // from.x += NotebookTab::ANGLE_WIDTH_SMALL + 1;
+            // to.x += 2;
 
             dc.SetPen(colours.activeTabBgColour);
             dc.DrawLine(from, to);
@@ -478,4 +483,40 @@ void NotebookTabArea::SetPageImage(size_t index, const wxBitmap& bmp)
         tab.SetBitmap(bmp);
         Refresh();
     }
+}
+
+NotebookTab::Colours::Colours()
+{
+    InitDarkColours();
+    // InitLightColours();
+}
+
+void NotebookTab::Colours::InitDarkColours()
+{
+    activeTabTextColour = "WHITE";
+    activeTabBgColour = wxColour("#211e1e");
+    activeTabPenColour = wxColour("#0e0d0d");
+    activeTabInnerPenColour = wxColour("#343131");
+
+    inactiveTabTextColour = wxColour("rgb(200, 200, 200)");
+    inactiveTabBgColour = wxColour("#393838");
+    inactiveTabPenColour = wxColour("#100f0f");
+    inactiveTabInnerPenColour = wxColour("#535252");
+
+    tabAreaColour = wxColour("#131111");
+}
+
+void NotebookTab::Colours::InitLightColours()
+{
+    activeTabTextColour = "#444444";
+    activeTabBgColour = "#f0f0f0";
+    activeTabPenColour = "#b9b9b9";
+    activeTabInnerPenColour = "#ffffff";
+
+    inactiveTabTextColour = "#444444";
+    inactiveTabBgColour = "#e5e5e5";
+    inactiveTabPenColour = "#b9b9b9";
+    inactiveTabInnerPenColour = "#ffffff";
+
+    tabAreaColour = "#dcdcdc"; // wxColour("rgb(64, 64, 64)");
 }

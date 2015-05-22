@@ -2,13 +2,13 @@
 <CodeLite_Workspace Name="Notebook" Database="" SWTLW="No">
   <Project Name="Notebook" Path="Notebook/Notebook.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="no">
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Project Name="Notebook" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="no">
       <Project Name="Notebook" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug_Linux" Selected="yes">
+    <WorkspaceConfiguration Name="Debug_Linux" Selected="no">
       <Project Name="Notebook" ConfigName="Debug_Linux"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

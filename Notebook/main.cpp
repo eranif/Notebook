@@ -2,6 +2,7 @@
 #include <wx/event.h>
 #include "MainFrame.h"
 #include <wx/image.h>
+#include <wx/xrc/xmlres.h>
 
 // Define the MainApp
 class MainApp : public wxApp
@@ -12,9 +13,9 @@ public:
 
     virtual bool OnInit() {
         // Add the common image handlers
+        wxXmlResource::Get()->InitAllHandlers();
         wxImage::AddHandler( new wxPNGHandler );
         wxImage::AddHandler( new wxJPEGHandler );
-
         MainFrame *mainFrame = new MainFrame(NULL);
         SetTopWindow(mainFrame);
         return GetTopWindow()->Show();

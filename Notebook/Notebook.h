@@ -22,8 +22,7 @@ class WXDLLIMPEXP_SDK NotebookTab
     int m_bmpY;
 
 public:
-    struct Colours
-    {
+    struct Colours {
         // Active tab colours
         wxColour inactiveTabBgColour;
         wxColour inactiveTabPenColour;
@@ -38,50 +37,21 @@ public:
 
         // the tab area colours
         wxColour tabAreaColour;
-
-        Colours() { 
-            InitDarkColours(); 
-            //InitLightColours();
-        }
-
-        void InitDarkColours()
-        {
-            activeTabTextColour = "WHITE";
-            activeTabBgColour = wxColour(*wxBLACK).ChangeLightness(105);
-            activeTabPenColour = activeTabBgColour.ChangeLightness(105);
-            activeTabInnerPenColour = activeTabPenColour.ChangeLightness(105);
-
-            inactiveTabTextColour = wxColour("rgb(200, 200, 200)");
-            inactiveTabBgColour = activeTabBgColour.ChangeLightness(130);
-            inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(80);
-            inactiveTabInnerPenColour = inactiveTabBgColour.ChangeLightness(105); //.ChangeLightness(70);
-
-            tabAreaColour = inactiveTabBgColour.ChangeLightness(120); // wxColour("rgb(64, 64, 64)");
-        }
+        Colours();
         
-        void InitLightColours()
-        {
-            activeTabTextColour = "wxBLACK";
-            activeTabBgColour = "#F8F8F8";
-            activeTabPenColour = "#686868";
-            activeTabInnerPenColour = "#F8F8F8";
-
-            inactiveTabTextColour = "#484848";
-            inactiveTabBgColour = "#B0B0B0";
-            inactiveTabPenColour = "#707070";
-            inactiveTabInnerPenColour = "#B8B8B8";
-
-            tabAreaColour = "#E0E0E0"; // wxColour("rgb(64, 64, 64)");
-        }
+        void InitDarkColours();
+        void InitLightColours();
     };
 
 public:
     static const int Y_SPACER = 5;
     static const int X_SPACER = 5;
-    static const int BOTTOM_AREA_HEIGHT = 3;
+    static const int BOTTOM_AREA_HEIGHT = 4;
 
-    static const int ANGLE_WIDTH = 9;
+    static const int ANGLE_WIDTH = 15;
     static const int ANGLE_WIDTH_SMALL = 3;
+
+    static const int TAB_HEIGHT = 35;
 
 protected:
     void CalculateOffsets();

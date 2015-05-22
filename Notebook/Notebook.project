@@ -36,6 +36,8 @@
   <VirtualDirectory Name="Notebook">
     <File Name="Notebook.h"/>
     <File Name="Notebook.cpp"/>
+    <File Name="notebook_bitmaps.xrc"/>
+    <File Name="notebook_bitmaps.cpp"/>
   </VirtualDirectory>
   <Settings Type="Executable">
     <GlobalSettings>
