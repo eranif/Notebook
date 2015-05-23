@@ -20,7 +20,10 @@ enum NotebookStyle {
     kNotebook_AllowDnD = (1 << 3),
     /// Draw X button on the active tab
     kNotebook_CloseButtonOnActiveTab = (1 << 4),
+    /// Mouse middle click closes tab
+    kNotebook_MouseMiddleClickClosesTab = (1 << 5),
 };
+
 /**
  * @class NotebookTab
  * @author Eran Ifrah
@@ -147,7 +150,7 @@ class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
     NotebookTab::Colours m_colours;
     NotebookTab::Vec_t m_visibleTabs;
     int m_closeButtonClickedIndex;
-    
+
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
@@ -155,6 +158,7 @@ protected:
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
     void OnMouseMotion(wxMouseEvent& event);
+    void OnMouseMiddleClick(wxMouseEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
 
     bool ShiftRight(NotebookTab::Vec_t& tabs);
@@ -227,7 +231,7 @@ public:
     void SetPageBitmap(size_t index, const wxBitmap& bmp);
     wxBitmap GetPageBitmap(size_t index) const;
     wxWindow* GetPage(size_t index) const;
-
+    void GetAllPages(std::vector<wxWindow*>& pages);
     int FindPage(wxWindow* page) const;
     bool RemovePage(size_t page, bool notify, bool deletePage);
     bool DeleteAllPages();
@@ -367,6 +371,11 @@ public:
      * @brief Returns the window at the given page position.
      */
     wxWindow* GetPage(size_t index) const { return m_header->GetPage(index); }
+
+    /**
+     * @brief return an array of all the windows managed by this notebook
+     */
+    void GetAllPages(std::vector<wxWindow*>& pages) { m_header->GetAllPages(pages); }
 };
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);

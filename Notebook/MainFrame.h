@@ -15,7 +15,10 @@ public:
 
     void OnPageChanged(wxBookCtrlEvent& event);
     void OnPageChanging(wxBookCtrlEvent& event);
+    void OnPageClosed(wxBookCtrlEvent& event);
+    void OnPageClosing(wxBookCtrlEvent& event);
 protected:
+    virtual void OnMouseMiddleCloses(wxCommandEvent& event);
     virtual void OnDeleteAllPages(wxCommandEvent& event);
     virtual void OnAllowTabMove(wxCommandEvent& event);
     virtual void OnShowCloseButton(wxCommandEvent& event);

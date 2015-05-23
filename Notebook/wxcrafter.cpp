@@ -47,6 +47,9 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     m_menuItemCloseAll = new wxMenuItem(m_menu21, ID_CLOSE_ALL, _("Delete all pages"), wxT(""), wxITEM_NORMAL);
     m_menu21->Append(m_menuItemCloseAll);
     
+    m_menuItemMouseMiddleClickCLoses = new wxMenuItem(m_menu21, ID_MOUSE_MIDDLE_CLOSE, _("Mouse Middle Closes tab"), wxT(""), wxITEM_CHECK);
+    m_menu21->Append(m_menuItemMouseMiddleClickCLoses);
+    
     m_menu21->AppendSeparator();
     
     Exit = new wxMenuItem(m_menu21, wxID_EXIT, _("Exit\tAlt-F4"), wxT(""), wxITEM_NORMAL);
@@ -85,6 +88,7 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     this->Connect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
     this->Connect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
     this->Connect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
+    this->Connect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
     this->Connect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }
@@ -96,6 +100,7 @@ MainFrameBaseClass::~MainFrameBaseClass()
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
     this->Disconnect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
     this->Disconnect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
+    this->Disconnect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
     this->Disconnect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }

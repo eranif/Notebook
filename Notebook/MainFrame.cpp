@@ -37,6 +37,8 @@ MainFrame::MainFrame(wxWindow* parent)
 
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGED, &MainFrame::OnPageChanged, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGING, &MainFrame::OnPageChanging, this);
+    m_book->Bind(wxEVT_BOOK_PAGE_CLOSING, &MainFrame::OnPageClosing, this);
+    m_book->Bind(wxEVT_BOOK_PAGE_CLOSED, &MainFrame::OnPageClosed, this);
 }
 
 MainFrame::~MainFrame() {}
@@ -117,7 +119,29 @@ void MainFrame::OnAllowTabMove(wxCommandEvent& event)
     }
     m_book->SetStyle(style);
 }
-void MainFrame::OnDeleteAllPages(wxCommandEvent& event)
+void MainFrame::OnDeleteAllPages(wxCommandEvent& event) { m_book->DeleteAllPages(); }
+
+void MainFrame::OnPageClosed(wxBookCtrlEvent& event)
 {
-    m_book->DeleteAllPages();
+    m_log->AppendText(wxString() << "Page: " << event.GetSelection() << " closed"
+                                 << "\n");
+}
+
+void MainFrame::OnPageClosing(wxBookCtrlEvent& event)
+{
+    m_log->AppendText(wxString() << "Page: " << event.GetSelection() << " is being closed"
+                                 << "\n");
+    if(wxMessageBox("Allow?", "You can veto", wxYES_NO | wxCENTER | wxICON_QUESTION) != wxYES) {
+        event.Veto();
+    }
+}
+void MainFrame::OnMouseMiddleCloses(wxCommandEvent& event)
+{
+    size_t style = m_book->GetStyle();
+    if(event.IsChecked()) {
+        style |= kNotebook_MouseMiddleClickClosesTab;
+    } else {
+        style &= ~kNotebook_MouseMiddleClickClosesTab;
+    }
+    m_book->SetStyle(style);
 }

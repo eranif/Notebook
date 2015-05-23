@@ -284,6 +284,7 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
     Bind(wxEVT_LEFT_DOWN, &NotebookTabArea::OnLeftDown, this);
     Bind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
     Bind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
+    Bind(wxEVT_MIDDLE_UP, &NotebookTabArea::OnMouseMiddleClick, this);
     if(m_style & kNotebook_DarkTabs) {
         m_colours.InitDarkColours();
     } else {
@@ -299,6 +300,7 @@ NotebookTabArea::~NotebookTabArea()
     Unbind(wxEVT_LEFT_DOWN, &NotebookTabArea::OnLeftDown, this);
     Unbind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
     Unbind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
+    Unbind(wxEVT_MIDDLE_UP, &NotebookTabArea::OnMouseMiddleClick, this);
 }
 
 void NotebookTabArea::OnSize(wxSizeEvent& event)
@@ -725,11 +727,12 @@ bool NotebookTabArea::RemovePage(size_t page, bool notify, bool deletePage)
 {
     int nextSelection = wxNOT_FOUND;
     if(!IsIndexValid(page)) return false;
+    bool deletingSelection = ((int)page == GetSelection());
 
     if(notify) {
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CLOSING);
         event.SetEventObject(this);
-        event.SetSelection(GetSelection());
+        event.SetSelection(page);
         GetParent()->GetEventHandler()->ProcessEvent(event);
         if(!event.IsAllowed()) {
             // Vetoed
@@ -758,20 +761,22 @@ bool NotebookTabArea::RemovePage(size_t page, bool notify, bool deletePage)
         }
     }
 
-    // Choose a new selection
-    nextSelection = page;
-    if(!m_tabs.empty()) {
-        if(nextSelection >= (int)m_tabs.size()) {
-            --nextSelection;
-        }
+    // Choose a new selection, but only if we are deleting the active tab
+    nextSelection = wxNOT_FOUND;
+    if(deletingSelection) {
+        nextSelection = page;
+        if(!m_tabs.empty()) {
+            if(nextSelection >= (int)m_tabs.size()) {
+                --nextSelection;
+            }
 
-        // Ensure that the next selection is always valid
-        if(nextSelection >= (int)m_tabs.size()) {
-            nextSelection = 0;
+            // Ensure that the next selection is always valid
+            if(nextSelection >= (int)m_tabs.size()) {
+                nextSelection = 0;
+            }
+        } else {
+            nextSelection = wxNOT_FOUND;
         }
-
-    } else {
-        nextSelection = wxNOT_FOUND;
     }
 
     // Now remove the page from the notebook. We will delete the page
@@ -828,4 +833,22 @@ bool NotebookTabArea::DeleteAllPages()
     }
     Refresh();
     return true;
+}
+
+void NotebookTabArea::OnMouseMiddleClick(wxMouseEvent& event)
+{
+    event.Skip();
+    if(GetStyle() & kNotebook_MouseMiddleClickClosesTab) {
+        int realPos, tabHit;
+        TestPoint(event.GetPosition(), realPos, tabHit);
+        if(realPos != wxNOT_FOUND) {
+            CallAfter(&NotebookTabArea::DoDeletePage, realPos);
+        }
+    }
+}
+
+void NotebookTabArea::GetAllPages(std::vector<wxWindowMSW*>& pages)
+{
+    std::for_each(
+        m_tabs.begin(), m_tabs.end(), [&](NotebookTab::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
 }
