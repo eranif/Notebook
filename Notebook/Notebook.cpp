@@ -85,6 +85,8 @@ int Notebook::FindPage(wxWindow* page) const { return m_header->FindPage(page); 
 bool Notebook::RemovePage(size_t page) { return m_header->RemovePage(page, false, false); }
 bool Notebook::DeletePage(size_t page) { return m_header->RemovePage(page, true, true); }
 
+bool Notebook::DeleteAllPages() { return m_header->DeleteAllPages(); }
+
 //----------------------------------------------------------
 // Tab label
 //----------------------------------------------------------
@@ -272,6 +274,7 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
     : wxPanel(notebook)
     , m_height(NotebookTab::TAB_HEIGHT)
     , m_style(style)
+    , m_closeButtonClickedIndex(wxNOT_FOUND)
 {
     SetSizeHints(wxSize(-1, m_height));
     SetSize(-1, m_height);
@@ -431,7 +434,7 @@ void NotebookTabArea::UpdateVisibleTabs()
 void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
 {
     event.Skip();
-
+    m_closeButtonClickedIndex = wxNOT_FOUND;
     // Get list of visible tabs
     bool clickWasOnActiveTab = false;
     for(size_t i = 0; i < m_visibleTabs.size(); ++i) {
@@ -446,15 +449,31 @@ void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
         }
     }
 
+    {
+        int tabHit, realPos;
+        TestPoint(event.GetPosition(), realPos, tabHit);
+        if(tabHit != wxNOT_FOUND) {
+            if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && m_visibleTabs.at(tabHit)->IsActive()) {
+                // we clicked on the selected index
+                NotebookTab::Ptr_t t = m_visibleTabs.at(tabHit);
+                wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
+                if(xRect.Contains(event.GetPosition())) {
+                    m_closeButtonClickedIndex = tabHit;
+                }
+            }
+        }
+    }
     // We clicked on the active tab, start DnD operation
     if((m_style & kNotebook_AllowDnD) && clickWasOnActiveTab) {
+        // TODO :: implement DnD here
     }
 }
 
-void NotebookTabArea::ChangeSelection(size_t tabIdx)
+int NotebookTabArea::ChangeSelection(size_t tabIdx)
 {
     wxWindowUpdateLocker locker(GetParent());
-    if(!IsIndexValid(tabIdx)) return;
+    int oldSelection = GetSelection();
+    if(!IsIndexValid(tabIdx)) return oldSelection;
 
     for(size_t i = 0; i < m_tabs.size(); ++i) {
         NotebookTab::Ptr_t tab = m_tabs.at(i);
@@ -466,9 +485,10 @@ void NotebookTabArea::ChangeSelection(size_t tabIdx)
         static_cast<Notebook*>(GetParent())->DoChangeSelection(activeTab->GetWindow());
     }
     Refresh();
+    return oldSelection;
 }
 
-void NotebookTabArea::SetSelection(size_t tabIdx)
+int NotebookTabArea::SetSelection(size_t tabIdx)
 {
     int oldSelection = GetSelection();
     {
@@ -479,7 +499,7 @@ void NotebookTabArea::SetSelection(size_t tabIdx)
         GetParent()->GetEventHandler()->ProcessEvent(event);
 
         if(!event.IsAllowed()) {
-            return; // Vetoed by the user
+            return oldSelection; // Vetoed by the user
         }
     }
     ChangeSelection(tabIdx);
@@ -492,6 +512,7 @@ void NotebookTabArea::SetSelection(size_t tabIdx)
         event.SetOldSelection(oldSelection);
         GetParent()->GetEventHandler()->AddPendingEvent(event);
     }
+    return oldSelection;
 }
 
 int NotebookTabArea::GetSelection() const
@@ -574,14 +595,14 @@ wxString NotebookTabArea::GetPageText(size_t page) const
     return "";
 }
 
-wxBitmap NotebookTabArea::GetPageImage(size_t index) const
+wxBitmap NotebookTabArea::GetPageBitmap(size_t index) const
 {
     NotebookTab::Ptr_t tab = GetTabInfo(index);
     if(tab) return tab->GetBitmap();
     return wxNullBitmap;
 }
 
-void NotebookTabArea::SetPageImage(size_t index, const wxBitmap& bmp)
+void NotebookTabArea::SetPageBitmap(size_t index, const wxBitmap& bmp)
 {
     NotebookTab::Ptr_t tab = GetTabInfo(index);
     if(tab) {
@@ -601,7 +622,9 @@ void NotebookTabArea::OnLeftUp(wxMouseEvent& event)
             // we clicked on the selected index
             NotebookTab::Ptr_t t = m_visibleTabs.at(tabHit);
             wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
-            if(xRect.Contains(event.GetPosition())) {
+            xRect.Inflate(2); // dont be picky if we did not click exactly on the 16x16 bitmap...
+
+            if(m_closeButtonClickedIndex == tabHit && xRect.Contains(event.GetPosition())) {
                 CallAfter(&NotebookTabArea::DoDeletePage, realPos);
             }
         }
@@ -751,7 +774,8 @@ bool NotebookTabArea::RemovePage(size_t page, bool notify, bool deletePage)
         nextSelection = wxNOT_FOUND;
     }
 
-    // Now remove the page from the notebook
+    // Now remove the page from the notebook. We will delete the page
+    // ourself, so there is no need to call DeletePage
     int where = GetBook()->FindPage(tab->GetWindow());
     if(where != wxNOT_FOUND) {
         GetBook()->RemovePage(where);
@@ -794,4 +818,14 @@ int NotebookTabArea::DoGetPageIndex(wxWindow* win) const
         if(m_tabs.at(i)->GetWindow() == win) return i;
     }
     return wxNOT_FOUND;
+}
+
+bool NotebookTabArea::DeleteAllPages()
+{
+    if(GetBook()->DeleteAllPages()) {
+        m_tabs.clear();
+        m_visibleTabs.clear();
+    }
+    Refresh();
+    return true;
 }

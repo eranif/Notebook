@@ -16,6 +16,7 @@ public:
     void OnPageChanged(wxBookCtrlEvent& event);
     void OnPageChanging(wxBookCtrlEvent& event);
 protected:
+    virtual void OnDeleteAllPages(wxCommandEvent& event);
     virtual void OnAllowTabMove(wxCommandEvent& event);
     virtual void OnShowCloseButton(wxCommandEvent& event);
     virtual void OnTabStyle(wxCommandEvent& event);

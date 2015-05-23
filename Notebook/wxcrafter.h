@@ -32,10 +32,11 @@ class MainFrameBaseClass : public wxFrame
 {
 public:
     enum {
-        ID_CLOSE_ALLOW_TAB_MOVE = 1001,
-        ID_CLOSE_BUTTON = 1002,
-        ID_STYLE_DARK = 1003,
-        ID_STYLE_LIGHT = 1004,
+        ID_CLOSE_ALL = 1001,
+        ID_CLOSE_ALLOW_TAB_MOVE = 1002,
+        ID_CLOSE_BUTTON = 1003,
+        ID_STYLE_DARK = 1004,
+        ID_STYLE_LIGHT = 1005,
     };
 protected:
     wxMenuBar* m_menuBar19;
@@ -44,7 +45,8 @@ protected:
     wxMenuItem* m_styleDark;
     wxMenuItem* m_styleLight;
     wxMenuItem* m_menuItemMove;
-    wxMenuItem* m_menuItem35;
+    wxMenuItem* m_menuItemShowCloseButton;
+    wxMenuItem* m_menuItemCloseAll;
     wxMenuItem* m_separator;
     wxMenuItem* Exit;
     wxBoxSizer* boxSizer1;
@@ -56,6 +58,7 @@ protected:
     virtual void OnTabStyle(wxCommandEvent& event) { event.Skip(); }
     virtual void OnAllowTabMove(wxCommandEvent& event) { event.Skip(); }
     virtual void OnShowCloseButton(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnDeleteAllPages(wxCommandEvent& event) { event.Skip(); }
     virtual void OnClose(wxCommandEvent& event) { event.Skip(); }
 
 public:

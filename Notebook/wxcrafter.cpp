@@ -41,8 +41,11 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     m_menuItemMove = new wxMenuItem(m_menu21, ID_CLOSE_ALLOW_TAB_MOVE, _("Allow tabs to move"), wxT(""), wxITEM_CHECK);
     m_menu21->Append(m_menuItemMove);
     
-    m_menuItem35 = new wxMenuItem(m_menu21, ID_CLOSE_BUTTON, _("Show Close Button"), wxT(""), wxITEM_CHECK);
-    m_menu21->Append(m_menuItem35);
+    m_menuItemShowCloseButton = new wxMenuItem(m_menu21, ID_CLOSE_BUTTON, _("Show Close Button"), wxT(""), wxITEM_CHECK);
+    m_menu21->Append(m_menuItemShowCloseButton);
+    
+    m_menuItemCloseAll = new wxMenuItem(m_menu21, ID_CLOSE_ALL, _("Delete all pages"), wxT(""), wxITEM_NORMAL);
+    m_menu21->Append(m_menuItemCloseAll);
     
     m_menu21->AppendSeparator();
     
@@ -80,7 +83,8 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     this->Connect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
-    this->Connect(m_menuItem35->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+    this->Connect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+    this->Connect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
     this->Connect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }
@@ -90,7 +94,8 @@ MainFrameBaseClass::~MainFrameBaseClass()
     this->Disconnect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
-    this->Disconnect(m_menuItem35->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+    this->Disconnect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+    this->Disconnect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
     this->Disconnect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }

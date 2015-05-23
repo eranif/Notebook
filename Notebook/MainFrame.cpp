@@ -31,9 +31,9 @@ MainFrame::MainFrame(wxWindow* parent)
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Six", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Six",
                     true);
-    m_book->SetPageImage(0, blocks);
+    m_book->SetPageBitmap(0, blocks);
     m_book->SetPageText(0, "Colourful Blocks!");
-    m_book->SetPageImage(4, settings);
+    m_book->SetPageBitmap(4, settings);
 
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGED, &MainFrame::OnPageChanged, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGING, &MainFrame::OnPageChanging, this);
@@ -116,4 +116,8 @@ void MainFrame::OnAllowTabMove(wxCommandEvent& event)
         style &= ~kNotebook_AllowDnD;
     }
     m_book->SetStyle(style);
+}
+void MainFrame::OnDeleteAllPages(wxCommandEvent& event)
+{
+    m_book->DeleteAllPages();
 }

@@ -7,6 +7,7 @@
 #include <wx/settings.h>
 #include <wx/dcmemory.h>
 #include <wx/sharedptr.h>
+#include <wx/bookctrl.h>
 
 #define WXDLLIMPEXP_SDK
 
@@ -108,7 +109,7 @@ public:
     virtual ~NotebookTab() {}
 
     bool IsValid() const { return m_window != NULL; }
-    
+
     /**
      * @brief render the using the provided wxDC
      */
@@ -145,7 +146,8 @@ class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
     size_t m_style;
     NotebookTab::Colours m_colours;
     NotebookTab::Vec_t m_visibleTabs;
-
+    int m_closeButtonClickedIndex;
+    
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
@@ -154,11 +156,10 @@ protected:
     void OnLeftUp(wxMouseEvent& event);
     void OnMouseMotion(wxMouseEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
-    
+
     bool ShiftRight(NotebookTab::Vec_t& tabs);
     bool IsActiveTabInList(const NotebookTab::Vec_t& tabs) const;
     bool IsActiveTabVisible(const NotebookTab::Vec_t& tabs) const;
-
 
     /**
      * @brief loop over the tabs and set their coordiantes
@@ -203,11 +204,11 @@ public:
     /**
      * @brief update the selected tab. This function also fires an event
      */
-    void SetSelection(size_t tabIdx);
+    int SetSelection(size_t tabIdx);
     /**
      * @brief update the selected tab. This function does not fire an event
      */
-    void ChangeSelection(size_t tabIdx);
+    int ChangeSelection(size_t tabIdx);
 
     /**
      * @brief return the current selection. return wxNOT_FOUND if non is selected
@@ -223,12 +224,13 @@ public:
     void AddPage(NotebookTab::Ptr_t tab);
     bool InsertPage(size_t index, NotebookTab::Ptr_t tab);
 
-    void SetPageImage(size_t index, const wxBitmap& bmp);
-    wxBitmap GetPageImage(size_t index) const;
+    void SetPageBitmap(size_t index, const wxBitmap& bmp);
+    wxBitmap GetPageBitmap(size_t index) const;
     wxWindow* GetPage(size_t index) const;
 
     int FindPage(wxWindow* page) const;
     bool RemovePage(size_t page, bool notify, bool deletePage);
+    bool DeleteAllPages();
 };
 
 /**
@@ -309,13 +311,18 @@ public:
     bool DeletePage(size_t page);
 
     /**
+     * @brief Deletes all pages
+     */
+    bool DeleteAllPages();
+
+    /**
      * @brief set a new selection. This function fires an event that can be vetoed
      */
-    void SetSelection(size_t selection) { m_header->SetSelection(selection); }
+    int SetSelection(size_t selection) { return m_header->SetSelection(selection); }
     /**
      * @brief set new selection. No events are fired
      */
-    void ChangeSelection(size_t selection) { m_header->ChangeSelection(selection); }
+    int ChangeSelection(size_t selection) { return m_header->ChangeSelection(selection); }
 
     /**
      * @brief return the currently selected page, return wxNOT_FOUND if non found
@@ -335,12 +342,21 @@ public:
     /**
      * @brief set the image for the given page
      */
-    void SetPageImage(size_t index, const wxBitmap& bmp) { m_header->SetPageImage(index, bmp); }
+    void SetPageBitmap(size_t index, const wxBitmap& bmp) { m_header->SetPageBitmap(index, bmp); }
 
     /**
      * @brief return bitmap for a given page. Return wxNullBitmap if invalid page
      */
-    wxBitmap GetPageImage(size_t index) const { return m_header->GetPageImage(index); }
+    wxBitmap GetPageBitmap(size_t index) const { return m_header->GetPageBitmap(index); }
+
+    // Base class members...
+    virtual bool SetPageImage(size_t page, int image)
+    {
+        wxUnusedVar(page);
+        wxUnusedVar(image);
+        return false;
+    }
+    virtual int GetPageImage(size_t n) const { return wxNOT_FOUND; }
 
     /**
      * @brief Returns the number of pages in the control
