@@ -714,9 +714,26 @@ bool NotebookTabArea::RemovePage(size_t page, bool notify, bool deletePage)
         }
     }
 
+    // Remove the tab from the "all-tabs" list
     NotebookTab::Ptr_t tab = m_tabs.at(page);
     m_tabs.erase(m_tabs.begin() + page);
-    m_visibleTabs.clear();
+
+    // Remove the tabs from the visible tabs list
+    NotebookTab::Vec_t::iterator iter =
+        std::find_if(m_visibleTabs.begin(), m_visibleTabs.end(), [&](NotebookTab::Ptr_t t) {
+            if(t->GetWindow() == tab->GetWindow()) {
+                return true;
+            }
+            return false;
+        });
+    if(iter != m_visibleTabs.end()) {
+        iter = m_visibleTabs.erase(iter);
+
+        for(; iter != m_visibleTabs.end(); ++iter) {
+            // update the remainding tabs coordinates
+            (*iter)->GetRect().SetX((*iter)->GetRect().GetX() - tab->GetWidth() + NotebookTab::MAJOR_CURVE_WIDTH);
+        }
+    }
 
     // Choose a new selection
     nextSelection = page;
