@@ -9,7 +9,18 @@
 #include <wx/sharedptr.h>
 #include <wx/bookctrl.h>
 
-#define WXDLLIMPEXP_SDK
+#ifdef WXDLLIMPEXP_SDK
+#undef WXDLLIMPEXP_SDK
+#endif
+
+#ifdef WXMAKINGDLL_SDK
+#    define WXDLLIMPEXP_SDK __declspec(dllexport)
+#elif defined(WXUSINGDLL_SDK)
+#    define WXDLLIMPEXP_SDK __declspec(dllimport)
+#else // not making nor using DLL
+#    define WXDLLIMPEXP_SDK
+#endif
+
 
 enum NotebookStyle {
     /// Use the builtin light tab colours
