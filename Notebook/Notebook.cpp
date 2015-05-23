@@ -7,6 +7,7 @@
 #include <wx/image.h>
 #include <wx/xrc/xmlres.h>
 #include <wx/xrc/xh_bmp.h>
+#include <wx/menu.h>
 
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
@@ -275,6 +276,7 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
     , m_height(NotebookTab::TAB_HEIGHT)
     , m_style(style)
     , m_closeButtonClickedIndex(wxNOT_FOUND)
+    , m_contextMenu(NULL)
 {
     SetSizeHints(wxSize(-1, m_height));
     SetSize(-1, m_height);
@@ -285,6 +287,7 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
     Bind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
     Bind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
     Bind(wxEVT_MIDDLE_UP, &NotebookTabArea::OnMouseMiddleClick, this);
+    Bind(wxEVT_CONTEXT_MENU, &NotebookTabArea::OnContextMenu, this);
     if(m_style & kNotebook_DarkTabs) {
         m_colours.InitDarkColours();
     } else {
@@ -294,6 +297,7 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
 
 NotebookTabArea::~NotebookTabArea()
 {
+    //wxDELETE(m_contextMenu);
     Unbind(wxEVT_PAINT, &NotebookTabArea::OnPaint, this);
     Unbind(wxEVT_ERASE_BACKGROUND, &NotebookTabArea::OnEraseBG, this);
     Unbind(wxEVT_SIZE, &NotebookTabArea::OnSize, this);
@@ -301,6 +305,7 @@ NotebookTabArea::~NotebookTabArea()
     Unbind(wxEVT_LEFT_UP, &NotebookTabArea::OnLeftUp, this);
     Unbind(wxEVT_MOTION, &NotebookTabArea::OnMouseMotion, this);
     Unbind(wxEVT_MIDDLE_UP, &NotebookTabArea::OnMouseMiddleClick, this);
+    Unbind(wxEVT_CONTEXT_MENU, &NotebookTabArea::OnContextMenu, this);
 }
 
 void NotebookTabArea::OnSize(wxSizeEvent& event)
@@ -851,4 +856,25 @@ void NotebookTabArea::GetAllPages(std::vector<wxWindowMSW*>& pages)
 {
     std::for_each(
         m_tabs.begin(), m_tabs.end(), [&](NotebookTab::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
+}
+
+void NotebookTabArea::SetMenu(wxMenu* menu)
+{
+    m_contextMenu = menu;
+}
+
+void NotebookTabArea::OnContextMenu(wxContextMenuEvent& event)
+{
+    event.Skip();
+    if(!m_contextMenu) return;
+    
+    wxPoint pt = ::wxGetMousePosition();
+    pt = ScreenToClient(pt);
+    int realPos, tabHit;
+    TestPoint(pt, realPos, tabHit);
+    
+    if((realPos != wxNOT_FOUND) && (realPos == GetSelection())) {
+        // Show context menu for active tabs only
+        PopupMenu(m_contextMenu);
+    }
 }

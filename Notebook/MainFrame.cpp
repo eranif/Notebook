@@ -8,7 +8,15 @@ MainFrame::MainFrame(wxWindow* parent)
     : MainFrameBaseClass(parent)
 {
     DemoAppImages images;
+    wxMenu* menu = new wxMenu;
+    menu->Append(wxID_CLOSE);
+    menu->AppendSeparator();
+    menu->Append(wxID_COPY);
+    menu->Append(wxID_PASTE);
+    
     m_book = new Notebook(m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_LightTabs);
+    m_book->SetMenu(menu);
+    
     m_mainPanel->GetSizer()->Insert(0, m_book, 1, wxEXPAND | wxALL, 0);
     m_mainPanel->GetSizer()->Layout();
 

@@ -23,9 +23,9 @@
 
 
 enum NotebookStyle {
-    /// Use the builtin light tab colours
+    /// Use the built-in light tab colours
     kNotebook_LightTabs = (1 << 0),
-    /// Use the builtin dark tab colours
+    /// Use the built-in dark tab colours
     kNotebook_DarkTabs = (1 << 2),
     /// Allow tabs to move using DnD
     kNotebook_AllowDnD = (1 << 3),
@@ -147,6 +147,8 @@ public:
 };
 
 class Notebook;
+class wxMenu;
+
 /**
  * @class NotebookTabArea
  * @author Eran Ifrah
@@ -161,7 +163,8 @@ class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
     NotebookTab::Colours m_colours;
     NotebookTab::Vec_t m_visibleTabs;
     int m_closeButtonClickedIndex;
-
+    wxMenu* m_contextMenu;
+    
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
@@ -170,6 +173,7 @@ protected:
     void OnLeftUp(wxMouseEvent& event);
     void OnMouseMotion(wxMouseEvent& event);
     void OnMouseMiddleClick(wxMouseEvent& event);
+    void OnContextMenu(wxContextMenuEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
 
     bool ShiftRight(NotebookTab::Vec_t& tabs);
@@ -196,7 +200,7 @@ protected:
      * @brief test if pt is on one of the visible tabs return its index
      * @param pt mouse click position
      * @param realPosition the index position in the m_tabs array
-     * @param tabHit the inedx position in the m_visibleTabs array
+     * @param tabHit the index position in the m_visibleTabs array
      */
     void TestPoint(const wxPoint& pt, int& realPosition, int& tabHit);
 
@@ -246,6 +250,7 @@ public:
     int FindPage(wxWindow* page) const;
     bool RemovePage(size_t page, bool notify, bool deletePage);
     bool DeleteAllPages();
+    void SetMenu(wxMenu* menu);
 };
 
 /**
@@ -387,6 +392,12 @@ public:
      * @brief return an array of all the windows managed by this notebook
      */
     void GetAllPages(std::vector<wxWindow*>& pages) { m_header->GetAllPages(pages); }
+    
+    /**
+     * @brief set a context menu to be shown whe context menu is requested
+     * on a tab label
+     */
+    void SetMenu(wxMenu* menu) { m_header->SetMenu(menu); }
 };
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
