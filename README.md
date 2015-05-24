@@ -20,8 +20,7 @@ Here is how the current `Notebook` looks like:
 
 # Usage
 
-To start using the `Notebook` class, simply include the following files into
-your project:
+To start using the `Notebook` class, simply include the following files in your project:
 
  - `Notebook.cpp`
  - `Notebook.h`
