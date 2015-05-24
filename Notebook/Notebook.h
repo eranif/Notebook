@@ -203,8 +203,8 @@ protected:
     /**
      * @brief test if pt is on one of the visible tabs return its index
      * @param pt mouse click position
-     * @param realPosition the index position in the m_tabs array
-     * @param tabHit the index position in the m_visibleTabs array
+     * @param realPosition [output] the index position in the m_tabs array
+     * @param tabHit [output] the index position in the m_visibleTabs array
      */
     void TestPoint(const wxPoint& pt, int& realPosition, int& tabHit);
 
