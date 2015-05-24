@@ -37,11 +37,11 @@ enum NotebookStyle {
 };
 
 /**
- * @class NotebookTab
+ * @class NotebookTabCtrl
  * @author Eran Ifrah
  * @brief contains information (mainly for drawing purposes) about a single tab label
  */
-class WXDLLIMPEXP_SDK NotebookTab
+class WXDLLIMPEXP_SDK NotebookTabCtrl
 {
     wxString m_label;
     wxBitmap m_bitmap;
@@ -98,10 +98,10 @@ public:
     void CalculateOffsets(size_t style);
 
 public:
-    typedef wxSharedPtr<NotebookTab> Ptr_t;
-    typedef std::vector<NotebookTab::Ptr_t> Vec_t;
+    typedef wxSharedPtr<NotebookTabCtrl> Ptr_t;
+    typedef std::vector<NotebookTabCtrl::Ptr_t> Vec_t;
 
-    NotebookTab()
+    NotebookTabCtrl()
         : m_window(NULL)
         , m_active(false)
         , m_textX(wxNOT_FOUND)
@@ -114,7 +114,7 @@ public:
         CalculateOffsets(0);
     }
 
-    NotebookTab(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp = wxNullBitmap)
+    NotebookTabCtrl(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp = wxNullBitmap)
         : m_label(text)
         , m_bitmap(bmp)
         , m_window(page)
@@ -123,14 +123,14 @@ public:
         CalculateOffsets(style);
     }
 
-    virtual ~NotebookTab() {}
+    virtual ~NotebookTabCtrl() {}
 
     bool IsValid() const { return m_window != NULL; }
 
     /**
      * @brief render the using the provided wxDC
      */
-    void Draw(wxDC& dc, const NotebookTab::Colours& colours, size_t style);
+    void Draw(wxDC& dc, const NotebookTabCtrl::Colours& colours, size_t style);
     void SetBitmap(const wxBitmap& bitmap, size_t style);
     void SetLabel(const wxString& label, size_t style);
     void SetActive(bool active, size_t style);
@@ -160,11 +160,11 @@ class wxMenu;
 class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
 {
     int m_height;
-    NotebookTab::Vec_t m_tabs;
+    NotebookTabCtrl::Vec_t m_tabs;
     friend class Notebook;
     size_t m_style;
-    NotebookTab::Colours m_colours;
-    NotebookTab::Vec_t m_visibleTabs;
+    NotebookTabCtrl::Colours m_colours;
+    NotebookTabCtrl::Vec_t m_visibleTabs;
     int m_closeButtonClickedIndex;
     wxMenu* m_contextMenu;
     wxRect m_chevronRect;
@@ -180,14 +180,14 @@ protected:
     void OnContextMenu(wxContextMenuEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
 
-    bool ShiftRight(NotebookTab::Vec_t& tabs);
-    bool IsActiveTabInList(const NotebookTab::Vec_t& tabs) const;
-    bool IsActiveTabVisible(const NotebookTab::Vec_t& tabs) const;
+    bool ShiftRight(NotebookTabCtrl::Vec_t& tabs);
+    bool IsActiveTabInList(const NotebookTabCtrl::Vec_t& tabs) const;
+    bool IsActiveTabVisible(const NotebookTabCtrl::Vec_t& tabs) const;
 
     /**
      * @brief loop over the tabs and set their coordiantes
      */
-    void DoUpdateCoordiantes(NotebookTab::Vec_t& tabs);
+    void DoUpdateCoordiantes(NotebookTabCtrl::Vec_t& tabs);
     /**
      * @brief get list of tabs to draw. This call always returns the active tab as part of the list
      * It also ensures that we draw as much tabs as we can.
@@ -195,10 +195,10 @@ protected:
      */
     void UpdateVisibleTabs();
 
-    NotebookTab::Ptr_t GetTabInfo(size_t index);
-    NotebookTab::Ptr_t GetTabInfo(size_t index) const;
-    NotebookTab::Ptr_t GetTabInfo(wxWindow* page);
-    NotebookTab::Ptr_t GetActiveTabInfo();
+    NotebookTabCtrl::Ptr_t GetTabInfo(size_t index);
+    NotebookTabCtrl::Ptr_t GetTabInfo(size_t index) const;
+    NotebookTabCtrl::Ptr_t GetTabInfo(wxWindow* page);
+    NotebookTabCtrl::Ptr_t GetActiveTabInfo();
 
     /**
      * @brief test if pt is on one of the visible tabs return its index
@@ -245,8 +245,8 @@ public:
     bool SetPageText(size_t page, const wxString& text);
     wxString GetPageText(size_t page) const;
 
-    void AddPage(NotebookTab::Ptr_t tab);
-    bool InsertPage(size_t index, NotebookTab::Ptr_t tab);
+    void AddPage(NotebookTabCtrl::Ptr_t tab);
+    bool InsertPage(size_t index, NotebookTabCtrl::Ptr_t tab);
 
     void SetPageBitmap(size_t index, const wxBitmap& bmp);
     wxBitmap GetPageBitmap(size_t index) const;
@@ -268,7 +268,7 @@ public:
 class WXDLLIMPEXP_SDK Notebook : public wxPanel
 {
     wxSimplebook* m_book;
-    NotebookTabArea* m_header;
+    NotebookTabArea* m_tabCtrl;
     friend class NotebookTabArea;
 
 protected:
@@ -294,7 +294,7 @@ public:
     /**
      * @brief return the book style
      */
-    size_t GetStyle() const { return m_header->GetStyle(); }
+    size_t GetStyle() const { return m_tabCtrl->GetStyle(); }
 
     /**
      * destructor
@@ -343,36 +343,36 @@ public:
     /**
      * @brief set a new selection. This function fires an event that can be vetoed
      */
-    int SetSelection(size_t selection) { return m_header->SetSelection(selection); }
+    int SetSelection(size_t selection) { return m_tabCtrl->SetSelection(selection); }
     /**
      * @brief set new selection. No events are fired
      */
-    int ChangeSelection(size_t selection) { return m_header->ChangeSelection(selection); }
+    int ChangeSelection(size_t selection) { return m_tabCtrl->ChangeSelection(selection); }
 
     /**
      * @brief return the currently selected page, return wxNOT_FOUND if non found
      */
-    int GetSelection() const { return m_header->GetSelection(); }
+    int GetSelection() const { return m_tabCtrl->GetSelection(); }
 
     /**
      * @brief Sets the text for the given page.
      */
-    bool SetPageText(size_t page, const wxString& text) { return m_header->SetPageText(page, text); }
+    bool SetPageText(size_t page, const wxString& text) { return m_tabCtrl->SetPageText(page, text); }
 
     /**
      * @brief Returns the string for the given page
      */
-    wxString GetPageText(size_t page) const { return m_header->GetPageText(page); }
+    wxString GetPageText(size_t page) const { return m_tabCtrl->GetPageText(page); }
 
     /**
      * @brief set the image for the given page
      */
-    void SetPageBitmap(size_t index, const wxBitmap& bmp) { m_header->SetPageBitmap(index, bmp); }
+    void SetPageBitmap(size_t index, const wxBitmap& bmp) { m_tabCtrl->SetPageBitmap(index, bmp); }
 
     /**
      * @brief return bitmap for a given page. Return wxNullBitmap if invalid page
      */
-    wxBitmap GetPageBitmap(size_t index) const { return m_header->GetPageBitmap(index); }
+    wxBitmap GetPageBitmap(size_t index) const { return m_tabCtrl->GetPageBitmap(index); }
 
     // Base class members...
     virtual bool SetPageImage(size_t page, int image)
@@ -391,18 +391,24 @@ public:
     /**
      * @brief Returns the window at the given page position.
      */
-    wxWindow* GetPage(size_t index) const { return m_header->GetPage(index); }
+    wxWindow* GetPage(size_t index) const { return m_tabCtrl->GetPage(index); }
 
     /**
      * @brief return an array of all the windows managed by this notebook
      */
-    void GetAllPages(std::vector<wxWindow*>& pages) { m_header->GetAllPages(pages); }
+    void GetAllPages(std::vector<wxWindow*>& pages) { m_tabCtrl->GetAllPages(pages); }
 
     /**
      * @brief set a context menu to be shown whe context menu is requested
      * on a tab label
      */
-    void SetMenu(wxMenu* menu) { m_header->SetMenu(menu); }
+    void SetMenu(wxMenu* menu) { m_tabCtrl->SetMenu(menu); }
+
+    /**
+     * @brief Sets the tool tip displayed when hovering over the tab label of the page
+     * @return true if tool tip was updated, false if it failed, e.g. because the page index is invalid.
+     */
+    bool SetPageToolTip(size_t page, const wxString& tooltip);
 };
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
