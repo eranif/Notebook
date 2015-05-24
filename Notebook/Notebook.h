@@ -260,6 +260,7 @@ public:
     bool DeleteAllPages();
     void SetMenu(wxMenu* menu);
     bool SetPageToolTip(size_t page, const wxString& tooltip);
+    const clTabInfo::Vec_t& GetTabs() const { return m_tabs; }
 };
 
 /**
@@ -401,6 +402,16 @@ public:
      * @brief return an array of all the windows managed by this notebook
      */
     void GetAllPages(std::vector<wxWindow*>& pages) { m_tabCtrl->GetAllPages(pages); }
+
+    /**
+     * @brief return all tabs info
+     * @param tabs [output]
+     */
+    size_t GetAllTabs(clTabInfo::Vec_t& tabs)
+    {
+        tabs = m_tabCtrl->GetTabs();
+        return tabs.size();
+    }
 
     /**
      * @brief set a context menu to be shown whe context menu is requested
