@@ -23,19 +23,19 @@ MainFrame::MainFrame(wxWindow* parent)
     wxBitmap settings = images.Bitmap("settings");
     wxBitmap blocks = images.Bitmap("blocks");
 
-    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page One", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
+    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page One",
-                    false);
+                    true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Two",
-                    false);
+                    true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Three", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Three",
-                    false);
-    m_book->AddPage(new wxPanel(m_book), "wxPanel", false);
+                    true);
+    m_book->AddPage(new wxPanel(m_book), "wxPanel", true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Five", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Five",
-                    false);
+                    true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Six", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Six",
                     true);
