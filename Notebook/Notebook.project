@@ -50,6 +50,10 @@
   <VirtualDirectory Name="resources">
     <File Name="wxcrafter.wxcp"/>
     <File Name="win_resources.rc"/>
+    <File Name="../resources/blocks.png"/>
+    <File Name="../resources/close.png"/>
+    <File Name="../resources/notebook.png"/>
+    <File Name="../resources/settings.png"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Notebook">
     <File Name="Notebook.h"/>

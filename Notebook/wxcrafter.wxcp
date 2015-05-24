@@ -944,7 +944,7 @@
       }, {
        "type": "filePicker",
        "m_label": "Bitmap File:",
-       "m_path": "../blocks.png"
+       "m_path": "../resources/blocks.png"
       }],
      "m_events": [],
      "m_children": []
@@ -963,7 +963,7 @@
       }, {
        "type": "filePicker",
        "m_label": "Bitmap File:",
-       "m_path": "../settings.png"
+       "m_path": "../resources/settings.png"
       }],
      "m_events": [],
      "m_children": []
