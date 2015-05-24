@@ -14,6 +14,7 @@ wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CLOSING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CLOSED, wxBookCtrlEvent);
+wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CLOSE_BUTTON, wxBookCtrlEvent);
 
 extern void Notebook_Init_Bitmaps();
 
@@ -84,9 +85,8 @@ wxWindow* Notebook::GetCurrentPage() const
 
 int Notebook::FindPage(wxWindow* page) const { return m_tabCtrl->FindPage(page); }
 
-bool Notebook::RemovePage(size_t page) { return m_tabCtrl->RemovePage(page, false, false); }
+bool Notebook::RemovePage(size_t page, bool notify) { return m_tabCtrl->RemovePage(page, notify, false); }
 bool Notebook::DeletePage(size_t page) { return m_tabCtrl->RemovePage(page, true, true); }
-
 bool Notebook::DeleteAllPages() { return m_tabCtrl->DeleteAllPages(); }
 
 //----------------------------------------------------------
@@ -167,6 +167,38 @@ void clTabInfo::Draw(wxDC& dc, const clTabInfo::Colours& colours, size_t style)
     }
 }
 
+int clTabInfo::Y_SPACER = 3;
+int clTabInfo::X_SPACER = 3;
+int clTabInfo::BOTTOM_AREA_HEIGHT = 4;
+int clTabInfo::MAJOR_CURVE_WIDTH = 15;
+int clTabInfo::SMALL_CURVE_WIDTH = 3;
+int clTabInfo::TAB_HEIGHT = 35;
+
+static int OVERLAP_WIDTH = 20;
+
+clTabInfo::clTabInfo(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp)
+    : m_label(text)
+    , m_bitmap(bmp)
+    , m_window(page)
+    , m_active(false)
+{
+    CalculateOffsets(style);
+}
+
+clTabInfo::clTabInfo()
+    : m_window(NULL)
+    , m_active(false)
+    , m_textX(wxNOT_FOUND)
+    , m_textY(wxNOT_FOUND)
+    , m_bmpX(wxNOT_FOUND)
+    , m_bmpY(wxNOT_FOUND)
+    , m_bmpCloseX(wxNOT_FOUND)
+    , m_bmpCloseY(wxNOT_FOUND)
+{
+
+    CalculateOffsets(0);
+}
+
 void clTabInfo::CalculateOffsets(size_t style)
 {
     wxBitmap b(1, 1);
@@ -244,7 +276,7 @@ bool clTabCtrl::ShiftRight(clTabInfo::Vec_t& tabs)
 
         for(size_t i = 0; i < tabs.size(); ++i) {
             clTabInfo::Ptr_t t = tabs.at(i);
-            t->GetRect().SetX(t->GetRect().x - width + clTabInfo::MAJOR_CURVE_WIDTH);
+            t->GetRect().SetX(t->GetRect().x - width + OVERLAP_WIDTH);
         }
         return true;
     }
@@ -298,7 +330,7 @@ clTabCtrl::clTabCtrl(wxWindow* notebook, size_t style)
 
 clTabCtrl::~clTabCtrl()
 {
-    // wxDELETE(m_contextMenu);
+    wxDELETE(m_contextMenu);
     Unbind(wxEVT_PAINT, &clTabCtrl::OnPaint, this);
     Unbind(wxEVT_ERASE_BACKGROUND, &clTabCtrl::OnEraseBG, this);
     Unbind(wxEVT_SIZE, &clTabCtrl::OnSize, this);
@@ -428,7 +460,7 @@ void clTabCtrl::DoUpdateCoordiantes(clTabInfo::Vec_t& tabs)
         tab->GetRect().SetY(0);
         tab->GetRect().SetWidth(tab->GetWidth());
         tab->GetRect().SetHeight(tab->GetHeight());
-        xx += tab->GetWidth() - clTabInfo::MAJOR_CURVE_WIDTH;
+        xx += tab->GetWidth() - OVERLAP_WIDTH;
     }
 }
 
@@ -515,7 +547,7 @@ int clTabCtrl::SetSelection(size_t tabIdx)
     int oldSelection = GetSelection();
     {
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGING);
-        event.SetEventObject(this);
+        event.SetEventObject(GetParent());
         event.SetSelection(oldSelection);
         event.SetOldSelection(wxNOT_FOUND);
         GetParent()->GetEventHandler()->ProcessEvent(event);
@@ -529,7 +561,7 @@ int clTabCtrl::SetSelection(size_t tabIdx)
     // Fire an event
     {
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGED);
-        event.SetEventObject(this);
+        event.SetEventObject(GetParent());
         event.SetSelection(GetSelection());
         event.SetOldSelection(oldSelection);
         GetParent()->GetEventHandler()->AddPendingEvent(event);
@@ -654,7 +686,15 @@ void clTabCtrl::OnLeftUp(wxMouseEvent& event)
                 xRect.Inflate(2); // don't be picky if we did not click exactly on the 16x16 bitmap...
 
                 if(m_closeButtonClickedIndex == tabHit && xRect.Contains(event.GetPosition())) {
-                    CallAfter(&clTabCtrl::DoDeletePage, realPos);
+                    if(GetStyle() & kNotebook_CloseButtonOnActiveTabFireEvent) {
+                        // let the user process this
+                        wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CLOSE_BUTTON);
+                        event.SetEventObject(GetParent());
+                        event.SetSelection(realPos);
+                        GetParent()->GetEventHandler()->ProcessEvent(event);
+                    } else {
+                        CallAfter(&clTabCtrl::DoDeletePage, realPos);
+                    }
                 }
             }
         }
@@ -761,7 +801,7 @@ bool clTabCtrl::RemovePage(size_t page, bool notify, bool deletePage)
 
     if(notify) {
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CLOSING);
-        event.SetEventObject(this);
+        event.SetEventObject(GetParent());
         event.SetSelection(page);
         GetParent()->GetEventHandler()->ProcessEvent(event);
         if(!event.IsAllowed()) {
@@ -775,19 +815,18 @@ bool clTabCtrl::RemovePage(size_t page, bool notify, bool deletePage)
     m_tabs.erase(m_tabs.begin() + page);
 
     // Remove the tabs from the visible tabs list
-    clTabInfo::Vec_t::iterator iter =
-        std::find_if(m_visibleTabs.begin(), m_visibleTabs.end(), [&](clTabInfo::Ptr_t t) {
-            if(t->GetWindow() == tab->GetWindow()) {
-                return true;
-            }
-            return false;
-        });
+    clTabInfo::Vec_t::iterator iter = std::find_if(m_visibleTabs.begin(), m_visibleTabs.end(), [&](clTabInfo::Ptr_t t) {
+        if(t->GetWindow() == tab->GetWindow()) {
+            return true;
+        }
+        return false;
+    });
     if(iter != m_visibleTabs.end()) {
         iter = m_visibleTabs.erase(iter);
 
         for(; iter != m_visibleTabs.end(); ++iter) {
             // update the remainding tabs coordinates
-            (*iter)->GetRect().SetX((*iter)->GetRect().GetX() - tab->GetWidth() + clTabInfo::MAJOR_CURVE_WIDTH);
+            (*iter)->GetRect().SetX((*iter)->GetRect().GetX() - tab->GetWidth() + OVERLAP_WIDTH);
         }
     }
 
@@ -823,7 +862,7 @@ bool clTabCtrl::RemovePage(size_t page, bool notify, bool deletePage)
 
     if(notify) {
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CLOSED);
-        event.SetEventObject(this);
+        event.SetEventObject(GetParent());
         event.SetSelection(GetSelection());
         GetParent()->GetEventHandler()->ProcessEvent(event);
         if(!event.IsAllowed()) {
@@ -837,7 +876,7 @@ bool clTabCtrl::RemovePage(size_t page, bool notify, bool deletePage)
         ChangeSelection(nextSelection);
         if(notify) {
             wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGED);
-            event.SetEventObject(this);
+            event.SetEventObject(GetParent());
             event.SetSelection(GetSelection());
             GetParent()->GetEventHandler()->AddPendingEvent(event);
         }
@@ -874,6 +913,16 @@ void clTabCtrl::OnMouseMiddleClick(wxMouseEvent& event)
         if(realPos != wxNOT_FOUND) {
             CallAfter(&clTabCtrl::DoDeletePage, realPos);
         }
+    } else if(GetStyle() & kNotebook_MouseMiddleClickFireEvent) {
+        int realPos, tabHit;
+        TestPoint(event.GetPosition(), realPos, tabHit);
+        if(realPos != wxNOT_FOUND) {
+            // Just fire an event
+            wxBookCtrlEvent e(wxEVT_BOOK_PAGE_CLOSE_BUTTON);
+            e.SetEventObject(GetParent());
+            e.SetSelection(realPos);
+            GetParent()->GetEventHandler()->AddPendingEvent(e);
+        }
     }
 }
 
@@ -883,7 +932,11 @@ void clTabCtrl::GetAllPages(std::vector<wxWindow*>& pages)
         m_tabs.begin(), m_tabs.end(), [&](clTabInfo::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
 }
 
-void clTabCtrl::SetMenu(wxMenu* menu) { m_contextMenu = menu; }
+void clTabCtrl::SetMenu(wxMenu* menu)
+{
+    wxDELETE(m_contextMenu);
+    m_contextMenu = menu;
+}
 
 void clTabCtrl::OnContextMenu(wxContextMenuEvent& event)
 {
@@ -904,7 +957,7 @@ void clTabCtrl::OnContextMenu(wxContextMenuEvent& event)
 void clTabCtrl::DoShowTabList()
 {
     if(m_tabs.empty()) return;
-    
+
     int curselection = GetSelection();
     wxMenu menu;
     const int firstTabPageID = 13457;
@@ -937,4 +990,12 @@ bool clTabCtrl::SetPageToolTip(size_t page, const wxString& tooltip)
         return true;
     }
     return false;
+}
+
+int clTabCtrl::DoGetPageIndex(const wxString& label) const
+{
+    for(size_t i = 0; i < m_tabs.size(); ++i) {
+        if(m_tabs.at(i)->GetLabel() == label) return i;
+    }
+    return wxNOT_FOUND;
 }

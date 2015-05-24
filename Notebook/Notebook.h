@@ -34,6 +34,14 @@ enum NotebookStyle {
     kNotebook_MouseMiddleClickClosesTab = (1 << 5),
     /// Show a drop down button for displaying all tabs list
     kNotebook_ShowFileListButton = (1 << 6),
+    /// Mouse middle click on a tab fires an event
+    kNotebook_MouseMiddleClickFireEvent = (1 << 7),
+    /// Clicking the X button on the active button fires an event
+    /// instead of closing the tab (i.e. let the container a complete control)
+    kNotebook_CloseButtonOnActiveTabFireEvent = (1 << 8),
+    
+    /// Default notebook
+    kNotebook_Default = kNotebook_LightTabs | kNotebook_ShowFileListButton,
 };
 
 /**
@@ -88,12 +96,12 @@ public:
 
 public:
     // Geometry
-    static const int Y_SPACER = 5;
-    static const int X_SPACER = 5;
-    static const int BOTTOM_AREA_HEIGHT = 4;
-    static const int MAJOR_CURVE_WIDTH = 15;
-    static const int SMALL_CURVE_WIDTH = 3;
-    static const int TAB_HEIGHT = 35;
+    static int Y_SPACER;
+    static int X_SPACER;
+    static int BOTTOM_AREA_HEIGHT;
+    static int MAJOR_CURVE_WIDTH;
+    static int SMALL_CURVE_WIDTH;
+    static int TAB_HEIGHT;
 
 public:
     void CalculateOffsets(size_t style);
@@ -102,28 +110,8 @@ public:
     typedef wxSharedPtr<clTabInfo> Ptr_t;
     typedef std::vector<clTabInfo::Ptr_t> Vec_t;
 
-    clTabInfo()
-        : m_window(NULL)
-        , m_active(false)
-        , m_textX(wxNOT_FOUND)
-        , m_textY(wxNOT_FOUND)
-        , m_bmpX(wxNOT_FOUND)
-        , m_bmpY(wxNOT_FOUND)
-        , m_bmpCloseX(wxNOT_FOUND)
-        , m_bmpCloseY(wxNOT_FOUND)
-    {
-        CalculateOffsets(0);
-    }
-
-    clTabInfo(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp = wxNullBitmap)
-        : m_label(text)
-        , m_bitmap(bmp)
-        , m_window(page)
-        , m_active(false)
-    {
-        CalculateOffsets(style);
-    }
-
+    clTabInfo();
+    clTabInfo(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp = wxNullBitmap);
     virtual ~clTabInfo() {}
 
     bool IsValid() const { return m_window != NULL; }
@@ -182,6 +170,7 @@ protected:
     void OnMouseMiddleClick(wxMouseEvent& event);
     void OnContextMenu(wxContextMenuEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
+    int DoGetPageIndex(const wxString& label) const;
 
     bool ShiftRight(clTabInfo::Vec_t& tabs);
     bool IsActiveTabInList(const clTabInfo::Vec_t& tabs) const;
@@ -333,7 +322,7 @@ public:
     /**
      * @brief Deletes the specified page, without deleting the associated window
      */
-    bool RemovePage(size_t page);
+    bool RemovePage(size_t page, bool notify = false);
 
     /**
      * @brief Deletes the specified page and the associated window
@@ -389,6 +378,18 @@ public:
     virtual int GetPageImage(size_t n) const { return wxNOT_FOUND; }
 
     /**
+     * @brief return the index of a given window in the tab control
+     * @param window
+     * @return return window index, or wxNOT_FOUND
+     */
+    int GetPageIndex(wxWindow* window) const { return m_tabCtrl->DoGetPageIndex(window); }
+
+    /**
+     * @brief return the index of a given window by its title
+     */
+    int GetPageIndex(const wxString& label) const { return m_tabCtrl->DoGetPageIndex(label); }
+
+    /**
      * @brief Returns the number of pages in the control
      */
     size_t GetPageCount() const { return m_book->GetPageCount(); }
@@ -430,5 +431,6 @@ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEv
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSING, wxBookCtrlEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSED, wxBookCtrlEvent);
+wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSE_BUTTON, wxBookCtrlEvent);
 
 #endif // NOTEBOOK_H
