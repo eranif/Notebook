@@ -37,14 +37,15 @@ enum NotebookStyle {
 };
 
 /**
- * @class NotebookTabCtrl
+ * @class clTabInfo
  * @author Eran Ifrah
  * @brief contains information (mainly for drawing purposes) about a single tab label
  */
-class WXDLLIMPEXP_SDK NotebookTabCtrl
+class WXDLLIMPEXP_SDK clTabInfo
 {
     wxString m_label;
     wxBitmap m_bitmap;
+    wxString m_tooltip;
     wxWindow* m_window;
     wxRect m_rect;
     bool m_active;
@@ -98,10 +99,10 @@ public:
     void CalculateOffsets(size_t style);
 
 public:
-    typedef wxSharedPtr<NotebookTabCtrl> Ptr_t;
-    typedef std::vector<NotebookTabCtrl::Ptr_t> Vec_t;
+    typedef wxSharedPtr<clTabInfo> Ptr_t;
+    typedef std::vector<clTabInfo::Ptr_t> Vec_t;
 
-    NotebookTabCtrl()
+    clTabInfo()
         : m_window(NULL)
         , m_active(false)
         , m_textX(wxNOT_FOUND)
@@ -114,7 +115,7 @@ public:
         CalculateOffsets(0);
     }
 
-    NotebookTabCtrl(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp = wxNullBitmap)
+    clTabInfo(size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp = wxNullBitmap)
         : m_label(text)
         , m_bitmap(bmp)
         , m_window(page)
@@ -123,14 +124,14 @@ public:
         CalculateOffsets(style);
     }
 
-    virtual ~NotebookTabCtrl() {}
+    virtual ~clTabInfo() {}
 
     bool IsValid() const { return m_window != NULL; }
 
     /**
      * @brief render the using the provided wxDC
      */
-    void Draw(wxDC& dc, const NotebookTabCtrl::Colours& colours, size_t style);
+    void Draw(wxDC& dc, const clTabInfo::Colours& colours, size_t style);
     void SetBitmap(const wxBitmap& bitmap, size_t style);
     void SetLabel(const wxString& label, size_t style);
     void SetActive(bool active, size_t style);
@@ -147,24 +148,26 @@ public:
     int GetBmpCloseY() const { return m_bmpCloseY; }
     int GetHeight() const { return m_height; }
     int GetWidth() const { return m_width; }
+    void SetTooltip(const wxString& tooltip) { this->m_tooltip = tooltip; }
+    const wxString& GetTooltip() const { return m_tooltip; }
 };
 
 class Notebook;
 class wxMenu;
 
 /**
- * @class NotebookTabArea
+ * @class clTabCtrl
  * @author Eran Ifrah
  * @brief The Window that all the tabs are drawn on
  */
-class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
+class WXDLLIMPEXP_SDK clTabCtrl : public wxPanel
 {
     int m_height;
-    NotebookTabCtrl::Vec_t m_tabs;
+    clTabInfo::Vec_t m_tabs;
     friend class Notebook;
     size_t m_style;
-    NotebookTabCtrl::Colours m_colours;
-    NotebookTabCtrl::Vec_t m_visibleTabs;
+    clTabInfo::Colours m_colours;
+    clTabInfo::Vec_t m_visibleTabs;
     int m_closeButtonClickedIndex;
     wxMenu* m_contextMenu;
     wxRect m_chevronRect;
@@ -180,14 +183,14 @@ protected:
     void OnContextMenu(wxContextMenuEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
 
-    bool ShiftRight(NotebookTabCtrl::Vec_t& tabs);
-    bool IsActiveTabInList(const NotebookTabCtrl::Vec_t& tabs) const;
-    bool IsActiveTabVisible(const NotebookTabCtrl::Vec_t& tabs) const;
+    bool ShiftRight(clTabInfo::Vec_t& tabs);
+    bool IsActiveTabInList(const clTabInfo::Vec_t& tabs) const;
+    bool IsActiveTabVisible(const clTabInfo::Vec_t& tabs) const;
 
     /**
      * @brief loop over the tabs and set their coordiantes
      */
-    void DoUpdateCoordiantes(NotebookTabCtrl::Vec_t& tabs);
+    void DoUpdateCoordiantes(clTabInfo::Vec_t& tabs);
     /**
      * @brief get list of tabs to draw. This call always returns the active tab as part of the list
      * It also ensures that we draw as much tabs as we can.
@@ -195,10 +198,10 @@ protected:
      */
     void UpdateVisibleTabs();
 
-    NotebookTabCtrl::Ptr_t GetTabInfo(size_t index);
-    NotebookTabCtrl::Ptr_t GetTabInfo(size_t index) const;
-    NotebookTabCtrl::Ptr_t GetTabInfo(wxWindow* page);
-    NotebookTabCtrl::Ptr_t GetActiveTabInfo();
+    clTabInfo::Ptr_t GetTabInfo(size_t index);
+    clTabInfo::Ptr_t GetTabInfo(size_t index) const;
+    clTabInfo::Ptr_t GetTabInfo(wxWindow* page);
+    clTabInfo::Ptr_t GetActiveTabInfo();
 
     /**
      * @brief test if pt is on one of the visible tabs return its index
@@ -214,8 +217,8 @@ protected:
     void DoShowTabList();
 
 public:
-    NotebookTabArea(wxWindow* notebook, size_t style);
-    virtual ~NotebookTabArea();
+    clTabCtrl(wxWindow* notebook, size_t style);
+    virtual ~clTabCtrl();
 
     /**
      * @brief return true if index is in the tabs vector range
@@ -245,8 +248,8 @@ public:
     bool SetPageText(size_t page, const wxString& text);
     wxString GetPageText(size_t page) const;
 
-    void AddPage(NotebookTabCtrl::Ptr_t tab);
-    bool InsertPage(size_t index, NotebookTabCtrl::Ptr_t tab);
+    void AddPage(clTabInfo::Ptr_t tab);
+    bool InsertPage(size_t index, clTabInfo::Ptr_t tab);
 
     void SetPageBitmap(size_t index, const wxBitmap& bmp);
     wxBitmap GetPageBitmap(size_t index) const;
@@ -256,6 +259,7 @@ public:
     bool RemovePage(size_t page, bool notify, bool deletePage);
     bool DeleteAllPages();
     void SetMenu(wxMenu* menu);
+    bool SetPageToolTip(size_t page, const wxString& tooltip);
 };
 
 /**
@@ -263,13 +267,13 @@ public:
  * @author Eran Ifrah
  * @brief A modern notebook (similar to the ones seen on Sublime Text and Atom editors
  * for wxWidgets. The class implementation uses wxSimplebook as the tab container and a
- * custom drawing tab area (see above the class NotebookTabArea)
+ * custom drawing tab area (see above the class clTabCtrl)
  */
 class WXDLLIMPEXP_SDK Notebook : public wxPanel
 {
     wxSimplebook* m_book;
-    NotebookTabArea* m_tabCtrl;
-    friend class NotebookTabArea;
+    clTabCtrl* m_tabCtrl;
+    friend class clTabCtrl;
 
 protected:
     void DoChangeSelection(wxWindow* page);
@@ -287,7 +291,7 @@ public:
 
     /**
      * @brief set the notebook style. The style bits are kNotebook_* (you can set several
-     * styles ORed)
+     * styles OR-ed)
      */
     void SetStyle(size_t style);
 
@@ -408,7 +412,7 @@ public:
      * @brief Sets the tool tip displayed when hovering over the tab label of the page
      * @return true if tool tip was updated, false if it failed, e.g. because the page index is invalid.
      */
-    bool SetPageToolTip(size_t page, const wxString& tooltip);
+    bool SetPageToolTip(size_t page, const wxString& tooltip) { return m_tabCtrl->SetPageToolTip(page, tooltip); }
 };
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
