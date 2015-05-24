@@ -10,4 +10,4 @@ Here is how the current `Notebook` looks like:
 
 
 
-
+![Alt text](/resources/notebook.png?raw=true "Notebook")

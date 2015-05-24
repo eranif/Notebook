@@ -54,6 +54,7 @@
     <File Name="../resources/close.png"/>
     <File Name="../resources/notebook.png"/>
     <File Name="../resources/settings.png"/>
+    <File Name="../README.md"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Notebook">
     <File Name="Notebook.h"/>
