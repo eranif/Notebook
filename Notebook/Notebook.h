@@ -391,7 +391,7 @@ public:
     /**
      * @brief Returns the number of pages in the control
      */
-    size_t GetPagetCount() const { return m_book->GetPageCount(); }
+    size_t GetPageCount() const { return m_book->GetPageCount(); }
 
     /**
      * @brief Returns the window at the given page position.
