@@ -8,6 +8,7 @@
 #include <wx/xrc/xmlres.h>
 #include <wx/xrc/xh_bmp.h>
 #include <wx/menu.h>
+#include <algorithm>
 
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
@@ -876,7 +877,7 @@ void clTabCtrl::OnMouseMiddleClick(wxMouseEvent& event)
     }
 }
 
-void clTabCtrl::GetAllPages(std::vector<wxWindowMSW*>& pages)
+void clTabCtrl::GetAllPages(std::vector<wxWindow*>& pages)
 {
     std::for_each(
         m_tabs.begin(), m_tabs.end(), [&](clTabInfo::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
