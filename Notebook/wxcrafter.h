@@ -36,8 +36,9 @@ public:
         ID_CLOSE_ALLOW_TAB_MOVE = 1002,
         ID_CLOSE_BUTTON = 1003,
         ID_MOUSE_MIDDLE_CLOSE = 1004,
-        ID_STYLE_DARK = 1005,
-        ID_STYLE_LIGHT = 1006,
+        ID_SHOW_DROP_DOWNBUTTON = 1005,
+        ID_STYLE_DARK = 1006,
+        ID_STYLE_LIGHT = 1007,
     };
 protected:
     wxMenuBar* m_menuBar19;
@@ -49,6 +50,7 @@ protected:
     wxMenuItem* m_menuItemShowCloseButton;
     wxMenuItem* m_menuItemCloseAll;
     wxMenuItem* m_menuItemMouseMiddleClickCLoses;
+    wxMenuItem* m_menuItemShowDropDownButton;
     wxMenuItem* m_separator;
     wxMenuItem* Exit;
     wxBoxSizer* boxSizer1;
@@ -62,6 +64,7 @@ protected:
     virtual void OnShowCloseButton(wxCommandEvent& event) { event.Skip(); }
     virtual void OnDeleteAllPages(wxCommandEvent& event) { event.Skip(); }
     virtual void OnMouseMiddleCloses(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnShowFileListButton(wxCommandEvent& event) { event.Skip(); }
     virtual void OnClose(wxCommandEvent& event) { event.Skip(); }
 
 public:

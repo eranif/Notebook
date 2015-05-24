@@ -297,7 +297,7 @@ NotebookTabArea::NotebookTabArea(wxWindow* notebook, size_t style)
 
 NotebookTabArea::~NotebookTabArea()
 {
-    //wxDELETE(m_contextMenu);
+    // wxDELETE(m_contextMenu);
     Unbind(wxEVT_PAINT, &NotebookTabArea::OnPaint, this);
     Unbind(wxEVT_ERASE_BACKGROUND, &NotebookTabArea::OnEraseBG, this);
     Unbind(wxEVT_SIZE, &NotebookTabArea::OnSize, this);
@@ -323,12 +323,16 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
     wxRect clientRect(GetClientRect());
     if(clientRect.width <= 3) return;
 
+    m_chevronRect = wxRect();
     wxRect rect(GetClientRect());
     rect.Deflate(0);
 
-    // Reudce the length of the tabs bitmap by 16 pixles (we will draw there the drop down
-    // button)
-    rect.SetWidth(rect.GetWidth() - 16);
+    if(GetStyle() & kNotebook_ShowFileListButton) {
+        // Reduce the length of the tabs bitmap by 16 pixels (we will draw there the drop down
+        // button)
+        rect.SetWidth(rect.GetWidth() - 16);
+        m_chevronRect = wxRect(rect.GetTopRight(), wxSize(16, rect.GetHeight()));
+    }
 
     // Draw background
     dc.SetPen(m_colours.tabAreaColour);
@@ -392,11 +396,6 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
             to.y -= NotebookTab::BOTTOM_AREA_HEIGHT - 1;
             to.x -= 1;
 
-            // from.y = bottomRect.GetTopLeft().y;
-            // to.y = from.y;
-            // from.x += NotebookTab::ANGLE_WIDTH_SMALL + 1;
-            // to.x += 2;
-
             dc.SetPen(m_colours.activeTabBgColour);
             dc.DrawLine(from, to);
 #ifdef __WXOSX__
@@ -404,6 +403,15 @@ void NotebookTabArea::OnPaint(wxPaintEvent& e)
             dc.DrawLine(from, to);
             dc.DrawLine(from, to);
 #endif
+        }
+
+        if(GetStyle() & kNotebook_ShowFileListButton) {
+            // Draw the chevron
+            wxCoord chevronX =
+                m_chevronRect.GetTopLeft().x + ((m_chevronRect.GetWidth() - m_colours.chevronDown.GetWidth()) / 2);
+            wxCoord chevronY =
+                m_chevronRect.GetTopLeft().y + ((m_chevronRect.GetHeight() - m_colours.chevronDown.GetHeight()) / 2);
+            dc.DrawBitmap(m_colours.chevronDown, chevronX, chevronY);
         }
     } else {
         m_visibleTabs.clear();
@@ -425,13 +433,13 @@ void NotebookTabArea::DoUpdateCoordiantes(NotebookTab::Vec_t& tabs)
 
 void NotebookTabArea::UpdateVisibleTabs()
 {
-    // dont update the list if we dont need to
+    // don't update the list if we don't need to
     if(IsActiveTabInList(m_visibleTabs) && IsActiveTabVisible(m_visibleTabs)) return;
 
     // set the physical coords for each tab (we do this for all the tabs)
     DoUpdateCoordiantes(m_tabs);
 
-    // Start shiffting right tabs until the active tab is visible
+    // Start shifting right tabs until the active tab is visible
     m_visibleTabs = m_tabs;
     while(!IsActiveTabVisible(m_visibleTabs)) {
         if(!ShiftRight(m_visibleTabs)) break;
@@ -442,6 +450,12 @@ void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
 {
     event.Skip();
     m_closeButtonClickedIndex = wxNOT_FOUND;
+
+    if((GetStyle() & kNotebook_ShowFileListButton) && m_chevronRect.Contains(event.GetPosition())) {
+        // we will handle this later in the "Mouse Up" event
+        return;
+    }
+
     // Get list of visible tabs
     bool clickWasOnActiveTab = false;
     for(size_t i = 0; i < m_visibleTabs.size(); ++i) {
@@ -472,7 +486,7 @@ void NotebookTabArea::OnLeftDown(wxMouseEvent& event)
     }
     // We clicked on the active tab, start DnD operation
     if((m_style & kNotebook_AllowDnD) && clickWasOnActiveTab) {
-        // TODO :: implement DnD here
+        // TO-DO :: implement DnD here
     }
 }
 
@@ -622,17 +636,25 @@ void NotebookTabArea::OnLeftUp(wxMouseEvent& event)
 {
     event.Skip();
 
-    int tabHit, realPos;
-    TestPoint(event.GetPosition(), realPos, tabHit);
-    if(tabHit != wxNOT_FOUND) {
-        if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && m_visibleTabs.at(tabHit)->IsActive()) {
-            // we clicked on the selected index
-            NotebookTab::Ptr_t t = m_visibleTabs.at(tabHit);
-            wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
-            xRect.Inflate(2); // dont be picky if we did not click exactly on the 16x16 bitmap...
+    // First check if the chevron was clicked. We do this because the chevron could overlap the buttons drawing
+    // area
+    if((GetStyle() & kNotebook_ShowFileListButton) && m_chevronRect.Contains(event.GetPosition())) {
+        // Show the drop down list
+        CallAfter(&NotebookTabArea::DoShowTabList);
 
-            if(m_closeButtonClickedIndex == tabHit && xRect.Contains(event.GetPosition())) {
-                CallAfter(&NotebookTabArea::DoDeletePage, realPos);
+    } else {
+        int tabHit, realPos;
+        TestPoint(event.GetPosition(), realPos, tabHit);
+        if(tabHit != wxNOT_FOUND) {
+            if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && m_visibleTabs.at(tabHit)->IsActive()) {
+                // we clicked on the selected index
+                NotebookTab::Ptr_t t = m_visibleTabs.at(tabHit);
+                wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
+                xRect.Inflate(2); // don't be picky if we did not click exactly on the 16x16 bitmap...
+
+                if(m_closeButtonClickedIndex == tabHit && xRect.Contains(event.GetPosition())) {
+                    CallAfter(&NotebookTabArea::DoDeletePage, realPos);
+                }
             }
         }
     }
@@ -699,6 +721,7 @@ void NotebookTab::Colours::InitDarkColours()
     tabAreaColour = wxColour("#131111");
     // 12x12 bitmap
     closeButton = wxXmlResource::Get()->LoadBitmap("notebook-dark-x");
+    chevronDown = wxXmlResource::Get()->LoadBitmap("chevron-down-grey");
 }
 
 void NotebookTab::Colours::InitLightColours()
@@ -716,6 +739,7 @@ void NotebookTab::Colours::InitLightColours()
     tabAreaColour = "#dcdcdc"; // wxColour("rgb(64, 64, 64)");
     // 12x12 bitmap
     closeButton = wxXmlResource::Get()->LoadBitmap("notebook-light-x");
+    chevronDown = wxXmlResource::Get()->LoadBitmap("chevron-down-black");
 }
 
 int NotebookTabArea::FindPage(wxWindow* page) const
@@ -858,23 +882,48 @@ void NotebookTabArea::GetAllPages(std::vector<wxWindowMSW*>& pages)
         m_tabs.begin(), m_tabs.end(), [&](NotebookTab::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
 }
 
-void NotebookTabArea::SetMenu(wxMenu* menu)
-{
-    m_contextMenu = menu;
-}
+void NotebookTabArea::SetMenu(wxMenu* menu) { m_contextMenu = menu; }
 
 void NotebookTabArea::OnContextMenu(wxContextMenuEvent& event)
 {
     event.Skip();
     if(!m_contextMenu) return;
-    
+
     wxPoint pt = ::wxGetMousePosition();
     pt = ScreenToClient(pt);
     int realPos, tabHit;
     TestPoint(pt, realPos, tabHit);
-    
+
     if((realPos != wxNOT_FOUND) && (realPos == GetSelection())) {
         // Show context menu for active tabs only
         PopupMenu(m_contextMenu);
+    }
+}
+
+void NotebookTabArea::DoShowTabList()
+{
+    if(m_tabs.empty()) return;
+    
+    int curselection = GetSelection();
+    wxMenu menu;
+    const int firstTabPageID = 13457;
+    int pageMenuID = firstTabPageID;
+    for(size_t i = 0; i < m_tabs.size(); ++i) {
+        NotebookTab::Ptr_t tab = m_tabs.at(i);
+        wxMenuItem* item = new wxMenuItem(&menu, pageMenuID, tab->GetLabel(), "", wxITEM_NORMAL);
+        menu.Append(item);
+        if(tab->GetBitmap().IsOk()) {
+            item->SetBitmap(tab->GetBitmap());
+        }
+        pageMenuID++;
+    }
+
+    int selection = GetPopupMenuSelectionFromUser(menu, m_chevronRect.GetBottomLeft());
+    if(selection != wxID_NONE) {
+        selection -= firstTabPageID;
+        // don't change the selection unless the selection is really changing
+        if(curselection != selection) {
+            SetSelection(selection);
+        }
     }
 }

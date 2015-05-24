@@ -14,13 +14,12 @@
 #endif
 
 #ifdef WXMAKINGDLL_SDK
-#    define WXDLLIMPEXP_SDK __declspec(dllexport)
+#define WXDLLIMPEXP_SDK __declspec(dllexport)
 #elif defined(WXUSINGDLL_SDK)
-#    define WXDLLIMPEXP_SDK __declspec(dllimport)
+#define WXDLLIMPEXP_SDK __declspec(dllimport)
 #else // not making nor using DLL
-#    define WXDLLIMPEXP_SDK
+#define WXDLLIMPEXP_SDK
 #endif
-
 
 enum NotebookStyle {
     /// Use the built-in light tab colours
@@ -33,6 +32,8 @@ enum NotebookStyle {
     kNotebook_CloseButtonOnActiveTab = (1 << 4),
     /// Mouse middle click closes tab
     kNotebook_MouseMiddleClickClosesTab = (1 << 5),
+    /// Show a drop down button for displaying all tabs list
+    kNotebook_ShowFileListButton = (1 << 6),
 };
 
 /**
@@ -76,6 +77,8 @@ public:
         // close button bitmaps (MUST be 12x12)
         wxBitmap closeButton;
 
+        /// Chevron down arrow used as the button for showing tab list
+        wxBitmap chevronDown;
         Colours();
 
         void InitDarkColours();
@@ -164,7 +167,8 @@ class WXDLLIMPEXP_SDK NotebookTabArea : public wxPanel
     NotebookTab::Vec_t m_visibleTabs;
     int m_closeButtonClickedIndex;
     wxMenu* m_contextMenu;
-    
+    wxRect m_chevronRect;
+
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
@@ -207,6 +211,7 @@ protected:
     wxSimplebook* GetBook();
 
     void DoDeletePage(size_t page) { RemovePage(page, true, true); }
+    void DoShowTabList();
 
 public:
     NotebookTabArea(wxWindow* notebook, size_t style);
@@ -392,7 +397,7 @@ public:
      * @brief return an array of all the windows managed by this notebook
      */
     void GetAllPages(std::vector<wxWindow*>& pages) { m_header->GetAllPages(pages); }
-    
+
     /**
      * @brief set a context menu to be shown whe context menu is requested
      * on a tab label

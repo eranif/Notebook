@@ -50,6 +50,9 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     m_menuItemMouseMiddleClickCLoses = new wxMenuItem(m_menu21, ID_MOUSE_MIDDLE_CLOSE, _("Mouse Middle Closes tab"), wxT(""), wxITEM_CHECK);
     m_menu21->Append(m_menuItemMouseMiddleClickCLoses);
     
+    m_menuItemShowDropDownButton = new wxMenuItem(m_menu21, ID_SHOW_DROP_DOWNBUTTON, _("Show File List Button"), wxT(""), wxITEM_CHECK);
+    m_menu21->Append(m_menuItemShowDropDownButton);
+    
     m_menu21->AppendSeparator();
     
     Exit = new wxMenuItem(m_menu21, wxID_EXIT, _("Exit\tAlt-F4"), wxT(""), wxITEM_NORMAL);
@@ -89,6 +92,7 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     this->Connect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
     this->Connect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
     this->Connect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
+    this->Connect(m_menuItemShowDropDownButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
     this->Connect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }
@@ -101,6 +105,7 @@ MainFrameBaseClass::~MainFrameBaseClass()
     this->Disconnect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
     this->Disconnect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
     this->Disconnect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
+    this->Disconnect(m_menuItemShowDropDownButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
     this->Disconnect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }

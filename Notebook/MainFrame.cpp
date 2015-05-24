@@ -13,10 +13,10 @@ MainFrame::MainFrame(wxWindow* parent)
     menu->AppendSeparator();
     menu->Append(wxID_COPY);
     menu->Append(wxID_PASTE);
-    
+
     m_book = new Notebook(m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_LightTabs);
     m_book->SetMenu(menu);
-    
+
     m_mainPanel->GetSizer()->Insert(0, m_book, 1, wxEXPAND | wxALL, 0);
     m_mainPanel->GetSizer()->Layout();
 
@@ -150,6 +150,16 @@ void MainFrame::OnMouseMiddleCloses(wxCommandEvent& event)
         style |= kNotebook_MouseMiddleClickClosesTab;
     } else {
         style &= ~kNotebook_MouseMiddleClickClosesTab;
+    }
+    m_book->SetStyle(style);
+}
+void MainFrame::OnShowFileListButton(wxCommandEvent& event)
+{
+    size_t style = m_book->GetStyle();
+    if(event.IsChecked()) {
+        style |= kNotebook_ShowFileListButton;
+    } else {
+        style &= ~kNotebook_ShowFileListButton;
     }
     m_book->SetStyle(style);
 }
