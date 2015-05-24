@@ -376,7 +376,7 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
         m_tabs.at(i)->CalculateOffsets(GetStyle());
     }
 
-    if(rect.GetSize().x > 0) {
+    if(rect.GetSize().x > 0 && rect.GetSize().y > 0) {
         wxBitmap bmpTabs(rect.GetSize());
         wxMemoryDC memDC(bmpTabs);
         wxGCDC gcdc(memDC);
@@ -545,6 +545,12 @@ int clTabCtrl::ChangeSelection(size_t tabIdx)
 int clTabCtrl::SetSelection(size_t tabIdx)
 {
     int oldSelection = GetSelection();
+    /// Do nothing if the tab is already selected
+    if(oldSelection == (int)tabIdx) {
+        ChangeSelection(tabIdx);
+        return oldSelection;
+    }
+
     {
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGING);
         event.SetEventObject(GetParent());
@@ -624,19 +630,24 @@ wxSimplebook* clTabCtrl::GetBook() { return reinterpret_cast<Notebook*>(GetParen
 
 bool clTabCtrl::InsertPage(size_t index, clTabInfo::Ptr_t tab)
 {
+    int oldSelection = GetSelection();
     if(index > m_tabs.size()) return false;
     m_tabs.insert(m_tabs.begin() + index, tab);
+    bool sendPageChangedEvent = (oldSelection == wxNOT_FOUND) || tab->IsActive();
 
     int tabIndex = index;
     tab->GetWindow()->Reparent(GetBook());
     GetBook()->InsertPage(index, tab->GetWindow(), tab->GetLabel(), tab->IsActive());
-    clTabInfo::Ptr_t activeTab = GetActiveTabInfo();
-    if(!activeTab) {
-        // No active tab??
-        ChangeSelection(0);
-    }
-    if(tab->IsActive()) {
+    if(sendPageChangedEvent) {
         ChangeSelection(tabIndex);
+        
+        // Send an event
+        wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGED);
+        event.SetEventObject(GetParent());
+        event.SetSelection(GetSelection());
+        event.SetOldSelection(oldSelection);
+        GetParent()->GetEventHandler()->AddPendingEvent(event);
+        
     }
     Refresh();
     return true;
