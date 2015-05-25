@@ -40,10 +40,8 @@ Notebook::Notebook(wxWindow* parent,
 
     m_tabCtrl = new clTabCtrl(this, style);
     sizer->Add(m_tabCtrl, 0, wxEXPAND);
-
-    m_mainPanel = new wxPanel(this);
-    sizer->Add(m_mainPanel, 1, wxEXPAND);
-    m_mainPanel->Bind(wxEVT_SIZE, &Notebook::OnMainPanelSize, this);
+    m_book = new wxSimplebook(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0);
+    sizer->Add(m_book, 1, wxEXPAND);
     Layout();
 }
 
@@ -54,6 +52,16 @@ void Notebook::AddPage(wxWindow* page, const wxString& label, bool selected, con
     clTabInfo::Ptr_t tab(new clTabInfo(GetStyle(), page, label, bmp));
     tab->SetActive(selected, GetStyle());
     m_tabCtrl->AddPage(tab);
+}
+
+void Notebook::DoChangeSelection(wxWindow* page)
+{
+    for(size_t i = 0; i < m_book->GetPageCount(); ++i) {
+        if(m_book->GetPage(i) == page) {
+            m_book->ChangeSelection(i);
+            break;
+        }
+    }
 }
 
 bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp)
@@ -80,27 +88,6 @@ int Notebook::FindPage(wxWindow* page) const { return m_tabCtrl->FindPage(page);
 bool Notebook::RemovePage(size_t page, bool notify) { return m_tabCtrl->RemovePage(page, notify, false); }
 bool Notebook::DeletePage(size_t page) { return m_tabCtrl->RemovePage(page, true, true); }
 bool Notebook::DeleteAllPages() { return m_tabCtrl->DeleteAllPages(); }
-
-void Notebook::OnMainPanelSize(wxSizeEvent& event)
-{
-    event.Skip();
-    clTabInfo::Ptr_t t = m_tabCtrl->GetActiveTabInfo();
-    if(t) {
-        t->GetWindow()->SetSize(m_mainPanel->GetClientRect());
-    }
-}
-
-void Notebook::RecreateWindowsPanel()
-{
-    GetSizer()->Detach(m_mainPanel);
-    m_mainPanel->Destroy();
-    
-    // Create new one
-    m_mainPanel = new wxPanel(this);
-    GetSizer()->Add(m_mainPanel, 1, wxEXPAND);
-    m_mainPanel->Bind(wxEVT_SIZE, &Notebook::OnMainPanelSize, this);
-    Layout();
-}
 
 //----------------------------------------------------------
 // Tab label
@@ -275,7 +262,6 @@ void clTabInfo::SetLabel(const wxString& label, size_t style)
 void clTabInfo::SetActive(bool active, size_t style)
 {
     this->m_active = active;
-    m_window->Show(active);
     CalculateOffsets(style);
 }
 
@@ -550,9 +536,7 @@ int clTabCtrl::ChangeSelection(size_t tabIdx)
 
     clTabInfo::Ptr_t activeTab = GetActiveTabInfo();
     if(activeTab) {
-        activeTab->GetWindow()->SetSize(GetWindowsPanel()->GetClientSize());
-        DoHideCurrentSelection();
-        activeTab->GetWindow()->Show();
+        static_cast<Notebook*>(GetParent())->DoChangeSelection(activeTab->GetWindow());
     }
     Refresh();
     return oldSelection;
@@ -560,35 +544,8 @@ int clTabCtrl::ChangeSelection(size_t tabIdx)
 
 int clTabCtrl::SetSelection(size_t tabIdx)
 {
-    int oldSelection = GetSelection();
-    /// Do nothing if the tab is already selected
-    if(oldSelection == (int)tabIdx) {
-        ChangeSelection(tabIdx);
-        return oldSelection;
-    }
-
-    {
-        wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGING);
-        event.SetEventObject(GetParent());
-        event.SetSelection(oldSelection);
-        event.SetOldSelection(wxNOT_FOUND);
-        GetParent()->GetEventHandler()->ProcessEvent(event);
-
-        if(!event.IsAllowed()) {
-            return oldSelection; // Vetoed by the user
-        }
-    }
-    ChangeSelection(tabIdx);
-
-    // Fire an event
-    {
-        wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGED);
-        event.SetEventObject(GetParent());
-        event.SetSelection(GetSelection());
-        event.SetOldSelection(oldSelection);
-        GetParent()->GetEventHandler()->ProcessEvent(event);
-    }
-    return oldSelection;
+    CallAfter(&clTabCtrl::DoChangeSelection, tabIdx);
+    return wxNOT_FOUND;
 }
 
 int clTabCtrl::GetSelection() const
@@ -642,6 +599,8 @@ clTabInfo::Ptr_t clTabCtrl::GetActiveTabInfo()
 
 void clTabCtrl::AddPage(clTabInfo::Ptr_t tab) { InsertPage(m_tabs.size(), tab); }
 
+wxSimplebook* clTabCtrl::GetBook() { return reinterpret_cast<Notebook*>(GetParent())->m_book; }
+
 bool clTabCtrl::InsertPage(size_t index, clTabInfo::Ptr_t tab)
 {
     int oldSelection = GetSelection();
@@ -650,18 +609,18 @@ bool clTabCtrl::InsertPage(size_t index, clTabInfo::Ptr_t tab)
     bool sendPageChangedEvent = (oldSelection == wxNOT_FOUND) || tab->IsActive();
 
     int tabIndex = index;
-    tab->GetWindow()->Reparent(GetWindowsPanel());
-    tab->GetWindow()->Show(false);
-
+    tab->GetWindow()->Reparent(GetBook());
+    GetBook()->InsertPage(index, tab->GetWindow(), tab->GetLabel(), tab->IsActive());
     if(sendPageChangedEvent) {
         ChangeSelection(tabIndex);
-
+        
         // Send an event
         wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGED);
         event.SetEventObject(GetParent());
         event.SetSelection(GetSelection());
         event.SetOldSelection(oldSelection);
         GetParent()->GetEventHandler()->ProcessEvent(event);
+        
     }
     Refresh();
     return true;
@@ -873,8 +832,12 @@ bool clTabCtrl::RemovePage(size_t page, bool notify, bool deletePage)
         }
     }
 
-    // Detach the window from the sizer
-    GetParent()->GetSizer()->Detach(tab->GetWindow());
+    // Now remove the page from the notebook. We will delete the page
+    // ourself, so there is no need to call DeletePage
+    int where = GetBook()->FindPage(tab->GetWindow());
+    if(where != wxNOT_FOUND) {
+        GetBook()->RemovePage(where);
+    }
 
     if(deletePage) {
         // Destory the page
@@ -917,10 +880,11 @@ int clTabCtrl::DoGetPageIndex(wxWindow* win) const
 
 bool clTabCtrl::DeleteAllPages()
 {
-    m_visibleTabs.clear();
-    ((Notebook*)GetParent())->RecreateWindowsPanel();
-    m_tabs.clear();
-    Layout();
+    if(GetBook()->DeleteAllPages()) {
+        m_tabs.clear();
+        m_visibleTabs.clear();
+    }
+    Refresh();
     return true;
 }
 
@@ -1020,12 +984,34 @@ int clTabCtrl::DoGetPageIndex(const wxString& label) const
     return wxNOT_FOUND;
 }
 
-wxPanel* clTabCtrl::GetWindowsPanel() { return static_cast<Notebook*>(GetParent())->m_mainPanel; }
-
-void clTabCtrl::DoHideCurrentSelection()
+void clTabCtrl::DoChangeSelection(size_t index)
 {
-    clTabInfo::Ptr_t t = GetActiveTabInfo();
-    if(t) {
-        t->GetWindow()->Hide();
+    int oldSelection = GetSelection();
+    /// Do nothing if the tab is already selected
+    if(oldSelection == (int)index) {
+        ChangeSelection(index);
+        return;
+    }
+
+    {
+        wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGING);
+        event.SetEventObject(GetParent());
+        event.SetSelection(oldSelection);
+        event.SetOldSelection(wxNOT_FOUND);
+        GetParent()->GetEventHandler()->ProcessEvent(event);
+
+        if(!event.IsAllowed()) {
+            return; // Vetoed by the user
+        }
+    }
+    ChangeSelection(index);
+
+    // Fire an event
+    {
+        wxBookCtrlEvent event(wxEVT_BOOK_PAGE_CHANGED);
+        event.SetEventObject(GetParent());
+        event.SetSelection(GetSelection());
+        event.SetOldSelection(oldSelection);
+        GetParent()->GetEventHandler()->ProcessEvent(event);
     }
 }

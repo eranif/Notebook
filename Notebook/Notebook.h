@@ -22,7 +22,7 @@
 #define WXDLLIMPEXP_SDK
 #endif
 #else
-#define WXDLLIMPEXP_SDK
+#define WXDLLIMPEXP_SDK 
 #endif
 
 enum NotebookStyle {
@@ -43,7 +43,7 @@ enum NotebookStyle {
     /// Clicking the X button on the active button fires an event
     /// instead of closing the tab (i.e. let the container a complete control)
     kNotebook_CloseButtonOnActiveTabFireEvent = (1 << 7),
-
+    
     /// Default notebook
     kNotebook_Default = kNotebook_LightTabs | kNotebook_ShowFileListButton,
 };
@@ -163,7 +163,9 @@ class WXDLLIMPEXP_SDK clTabCtrl : public wxPanel
     int m_closeButtonClickedIndex;
     wxMenu* m_contextMenu;
     wxRect m_chevronRect;
-
+    
+    void DoChangeSelection(size_t index);
+    
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
@@ -175,8 +177,7 @@ protected:
     void OnContextMenu(wxContextMenuEvent& event);
     int DoGetPageIndex(wxWindow* win) const;
     int DoGetPageIndex(const wxString& label) const;
-    void DoHideCurrentSelection();
-    
+
     bool ShiftRight(clTabInfo::Vec_t& tabs);
     bool IsActiveTabInList(const clTabInfo::Vec_t& tabs) const;
     bool IsActiveTabVisible(const clTabInfo::Vec_t& tabs) const;
@@ -204,10 +205,11 @@ protected:
      * @param tabHit [output] the index position in the m_visibleTabs array
      */
     void TestPoint(const wxPoint& pt, int& realPosition, int& tabHit);
+
+    wxSimplebook* GetBook();
+
     void DoDeletePage(size_t page) { RemovePage(page, true, true); }
     void DoShowTabList();
-
-    wxPanel* GetWindowsPanel();
 
 public:
     clTabCtrl(wxWindow* notebook, size_t style);
@@ -260,17 +262,18 @@ public:
  * @class Notebook
  * @author Eran Ifrah
  * @brief A modern notebook (similar to the ones seen on Sublime Text and Atom editors
+ * for wxWidgets. The class implementation uses wxSimplebook as the tab container and a
+ * custom drawing tab area (see above the class clTabCtrl)
  */
 class WXDLLIMPEXP_SDK Notebook : public wxPanel
 {
+    wxSimplebook* m_book;
     clTabCtrl* m_tabCtrl;
     friend class clTabCtrl;
-    wxPanel* m_mainPanel;
 
 protected:
-    void OnMainPanelSize(wxSizeEvent& event);
-    void RecreateWindowsPanel();
-    
+    void DoChangeSelection(wxWindow* page);
+
 public:
     /**
      * Constructor
@@ -395,7 +398,7 @@ public:
     /**
      * @brief Returns the number of pages in the control
      */
-    size_t GetPageCount() const { return m_tabCtrl->GetTabs().size(); }
+    size_t GetPageCount() const { return m_book->GetPageCount(); }
 
     /**
      * @brief Returns the window at the given page position.
