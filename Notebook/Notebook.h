@@ -13,12 +13,16 @@
 #undef WXDLLIMPEXP_SDK
 #endif
 
+#ifdef __WXMSW__
 #ifdef WXMAKINGDLL_SDK
 #define WXDLLIMPEXP_SDK __declspec(dllexport)
 #elif defined(WXUSINGDLL_SDK)
 #define WXDLLIMPEXP_SDK __declspec(dllimport)
 #else // not making nor using DLL
 #define WXDLLIMPEXP_SDK
+#endif
+#else
+#define WXDLLIMPEXP_SDK 
 #endif
 
 enum NotebookStyle {
@@ -199,12 +203,10 @@ protected:
      * @param tabHit [output] the index position in the m_visibleTabs array
      */
     void TestPoint(const wxPoint& pt, int& realPosition, int& tabHit);
-
-    wxSimplebook* GetBook();
-
     void DoDeletePage(size_t page) { RemovePage(page, true, true); }
     void DoShowTabList();
-
+    
+    wxPanel* GetWindowsPanel();
 public:
     clTabCtrl(wxWindow* notebook, size_t style);
     virtual ~clTabCtrl();
@@ -256,18 +258,13 @@ public:
  * @class Notebook
  * @author Eran Ifrah
  * @brief A modern notebook (similar to the ones seen on Sublime Text and Atom editors
- * for wxWidgets. The class implementation uses wxSimplebook as the tab container and a
- * custom drawing tab area (see above the class clTabCtrl)
  */
 class WXDLLIMPEXP_SDK Notebook : public wxPanel
 {
-    wxSimplebook* m_book;
     clTabCtrl* m_tabCtrl;
     friend class clTabCtrl;
-
-protected:
-    void DoChangeSelection(wxWindow* page);
-
+    wxPanel* m_mainPanel;
+    
 public:
     /**
      * Constructor
@@ -392,7 +389,7 @@ public:
     /**
      * @brief Returns the number of pages in the control
      */
-    size_t GetPageCount() const { return m_book->GetPageCount(); }
+    size_t GetPageCount() const { return m_tabCtrl->GetTabs().size(); }
 
     /**
      * @brief Returns the window at the given page position.
