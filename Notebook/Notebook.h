@@ -4,10 +4,12 @@
 #include <wx/panel.h>
 #include <wx/simplebook.h>
 #include <vector>
+#include <list>
 #include <wx/settings.h>
 #include <wx/dcmemory.h>
 #include <wx/sharedptr.h>
 #include <wx/bookctrl.h>
+#include "windowstack.h"
 
 #ifdef WXDLLIMPEXP_SDK
 #undef WXDLLIMPEXP_SDK
@@ -22,7 +24,7 @@
 #define WXDLLIMPEXP_SDK
 #endif
 #else
-#define WXDLLIMPEXP_SDK 
+#define WXDLLIMPEXP_SDK
 #endif
 
 enum NotebookStyle {
@@ -43,7 +45,8 @@ enum NotebookStyle {
     /// Clicking the X button on the active button fires an event
     /// instead of closing the tab (i.e. let the container a complete control)
     kNotebook_CloseButtonOnActiveTabFireEvent = (1 << 7),
-    
+    /// Fire navigation event for Ctrl-TAB et al
+    kNotebook_EnableNavigationEvent = (1 << 8),
     /// Default notebook
     kNotebook_Default = kNotebook_LightTabs | kNotebook_ShowFileListButton,
 };
@@ -147,6 +150,33 @@ public:
 class Notebook;
 class wxMenu;
 
+class WXDLLIMPEXP_SDK clTabHistory
+{
+    std::list<wxWindow*> m_history;
+    wxWindow* m_page; /// The page to add to the hisotry
+
+public:
+    typedef wxSharedPtr<clTabHistory> Ptr_t;
+
+public:
+    clTabHistory();
+    virtual ~clTabHistory();
+
+    void Push(wxWindow* page);
+    void Pop(wxWindow* page);
+    wxWindow* PrevPage();
+    /**
+     * @brief clear the history
+     */
+    void Clear();
+
+    /**
+     * @brief return the tabbing history
+     * @return
+     */
+    const std::list<wxWindow*>& GetHistory() const { return m_history; }
+};
+
 /**
  * @class clTabCtrl
  * @author Eran Ifrah
@@ -163,13 +193,15 @@ class WXDLLIMPEXP_SDK clTabCtrl : public wxPanel
     int m_closeButtonClickedIndex;
     wxMenu* m_contextMenu;
     wxRect m_chevronRect;
-    
+    clTabHistory::Ptr_t m_history;
+
     void DoChangeSelection(size_t index);
-    
+
 protected:
     void OnPaint(wxPaintEvent& e);
     void OnEraseBG(wxEraseEvent& e);
     void OnSize(wxSizeEvent& event);
+    void OnWindowKeyDown(wxKeyEvent& event);
     void OnLeftDown(wxMouseEvent& event);
     void OnLeftUp(wxMouseEvent& event);
     void OnMouseMotion(wxMouseEvent& event);
@@ -206,7 +238,7 @@ protected:
      */
     void TestPoint(const wxPoint& pt, int& realPosition, int& tabHit);
 
-    wxSimplebook* GetBook();
+    WindowStack* GetStack();
 
     void DoDeletePage(size_t page) { RemovePage(page, true, true); }
     void DoShowTabList();
@@ -256,6 +288,7 @@ public:
     void SetMenu(wxMenu* menu);
     bool SetPageToolTip(size_t page, const wxString& tooltip);
     const clTabInfo::Vec_t& GetTabs() const { return m_tabs; }
+    clTabHistory::Ptr_t GetHistory() const { return m_history; }
 };
 
 /**
@@ -267,7 +300,7 @@ public:
  */
 class WXDLLIMPEXP_SDK Notebook : public wxPanel
 {
-    wxSimplebook* m_book;
+    WindowStack* m_windows;
     clTabCtrl* m_tabCtrl;
     friend class clTabCtrl;
 
@@ -398,7 +431,7 @@ public:
     /**
      * @brief Returns the number of pages in the control
      */
-    size_t GetPageCount() const { return m_book->GetPageCount(); }
+    size_t GetPageCount() const { return m_tabCtrl->GetTabs().size(); }
 
     /**
      * @brief Returns the window at the given page position.
@@ -431,6 +464,12 @@ public:
      * @return true if tool tip was updated, false if it failed, e.g. because the page index is invalid.
      */
     bool SetPageToolTip(size_t page, const wxString& tooltip) { return m_tabCtrl->SetPageToolTip(page, tooltip); }
+
+    /**
+     * @brief return the tabbing history
+     * @return
+     */
+    clTabHistory::Ptr_t GetHistory() const { return m_tabCtrl->GetHistory(); }
 };
 
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
@@ -438,5 +477,6 @@ wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEve
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSING, wxBookCtrlEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSED, wxBookCtrlEvent);
 wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_PAGE_CLOSE_BUTTON, wxBookCtrlEvent);
+wxDECLARE_EXPORTED_EVENT(WXDLLIMPEXP_SDK, wxEVT_BOOK_NAVIGATING, wxBookCtrlEvent);
 
 #endif // NOTEBOOK_H

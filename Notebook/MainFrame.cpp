@@ -14,7 +14,8 @@ MainFrame::MainFrame(wxWindow* parent)
     menu->Append(wxID_COPY);
     menu->Append(wxID_PASTE);
 
-    m_book = new Notebook(m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_LightTabs);
+    m_book = new Notebook(
+        m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_LightTabs | kNotebook_EnableNavigationEvent);
     m_book->SetMenu(menu);
 
     m_mainPanel->GetSizer()->Insert(0, m_book, 1, wxEXPAND | wxALL, 0);
@@ -23,9 +24,10 @@ MainFrame::MainFrame(wxWindow* parent)
     wxBitmap settings = images.Bitmap("settings");
     wxBitmap blocks = images.Bitmap("blocks");
 
-    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page One",
-                    true);
+    m_book->AddPage(
+        new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
+        "Page One",
+        true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Two",
                     true);
@@ -47,6 +49,7 @@ MainFrame::MainFrame(wxWindow* parent)
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGING, &MainFrame::OnPageChanging, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CLOSING, &MainFrame::OnPageClosing, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CLOSED, &MainFrame::OnPageClosed, this);
+    m_book->Bind(wxEVT_BOOK_NAVIGATING, &MainFrame::OnNavigation, this);
 }
 
 MainFrame::~MainFrame() {}
@@ -162,4 +165,10 @@ void MainFrame::OnShowFileListButton(wxCommandEvent& event)
         style &= ~kNotebook_ShowFileListButton;
     }
     m_book->SetStyle(style);
+}
+
+void MainFrame::OnNavigation(wxBookCtrlEvent& event)
+{
+    event.Skip();
+    m_log->AppendText("Navigation event\n");
 }

@@ -61,6 +61,8 @@
     <File Name="Notebook.cpp"/>
     <File Name="notebook_bitmaps.xrc"/>
     <File Name="notebook_bitmaps.cpp"/>
+    <File Name="windowstack.cpp"/>
+    <File Name="windowstack.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="osx">
     <File Name="Info.plist"/>

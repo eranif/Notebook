@@ -17,6 +17,8 @@ public:
     void OnPageChanging(wxBookCtrlEvent& event);
     void OnPageClosed(wxBookCtrlEvent& event);
     void OnPageClosing(wxBookCtrlEvent& event);
+    void OnNavigation(wxBookCtrlEvent& event);
+    
 protected:
     virtual void OnShowFileListButton(wxCommandEvent& event);
     virtual void OnMouseMiddleCloses(wxCommandEvent& event);
