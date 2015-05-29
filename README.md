@@ -22,15 +22,17 @@ Here is how the current `Notebook` looks like:
 
 # Usage
 
-To start using the `Notebook` class, simply include the following files in your project:
+To start using the `Notebook` class, include the following files in your project:
 
  - `Notebook.cpp`
  - `Notebook.h`
  - `notebook_bitmaps.cpp`
- 
+ - `windowstack.h`
+ - `windowstack.cpp`
+
 **Prerequisites**
 
  - wxWidgets 3.0.X 
  - A decent compiler that supports `C++11`
- 
+
  
