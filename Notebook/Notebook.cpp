@@ -202,7 +202,11 @@ void clTabInfo::CalculateOffsets(size_t style)
     m_bmpCloseY = wxNOT_FOUND;
 
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+#ifdef __WXOSX__
     font.SetPointSize(10);
+#else
+    font.SetPointSize(9);
+#endif
     memDC.SetFont(font);
     wxSize sz = memDC.GetTextExtent(m_label);
     m_height = TAB_HEIGHT;
@@ -236,7 +240,7 @@ void clTabInfo::CalculateOffsets(size_t style)
         m_width += 12; // X button is 10 pixels in size
     }
 
-    // m_width += X_SPACER;
+    m_width += X_SPACER;
     m_width += SMALL_CURVE_WIDTH;
     m_width += MAJOR_CURVE_WIDTH;
 
