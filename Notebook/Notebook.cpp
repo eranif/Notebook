@@ -400,7 +400,15 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
         rect.SetWidth(rect.GetWidth() - 16);
         m_chevronRect = wxRect(rect.GetTopRight(), wxSize(16, rect.GetHeight()));
     }
-
+    
+    if(m_tabs.empty()) {
+        // Draw the default bg colour
+        dc.SetPen(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
+        dc.SetBrush(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE));
+        dc.DrawRectangle(GetClientRect());
+        return;
+    }
+    
     // Draw background
     dc.SetPen(m_colours.tabAreaColour);
     dc.SetBrush(m_colours.tabAreaColour);
