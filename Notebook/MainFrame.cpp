@@ -142,10 +142,11 @@ void MainFrame::OnPageClosing(wxBookCtrlEvent& event)
 {
     m_log->AppendText(wxString() << "Page: " << event.GetSelection() << " is being closed"
                                  << "\n");
-    if(wxMessageBox("Allow?", "You can veto", wxYES_NO | wxCENTER | wxICON_QUESTION) != wxYES) {
-        event.Veto();
-    }
+    // if(wxMessageBox("Allow?", "You can veto", wxYES_NO | wxCENTER | wxICON_QUESTION) != wxYES) {
+    //    event.Veto();
+    //}
 }
+
 void MainFrame::OnMouseMiddleCloses(wxCommandEvent& event)
 {
     size_t style = m_book->GetStyle();
