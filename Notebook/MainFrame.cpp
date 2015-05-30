@@ -50,6 +50,8 @@ MainFrame::MainFrame(wxWindow* parent)
     m_book->Bind(wxEVT_BOOK_PAGE_CLOSING, &MainFrame::OnPageClosing, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CLOSED, &MainFrame::OnPageClosed, this);
     m_book->Bind(wxEVT_BOOK_NAVIGATING, &MainFrame::OnNavigation, this);
+    m_book->Bind(wxEVT_BOOK_TABAREA_DCLICKED, &MainFrame::OnTabAreadDClicked, this);
+    m_book->Bind(wxEVT_BOOK_TAB_DCLICKED, &MainFrame::OnTabDClicked, this);
 }
 
 MainFrame::~MainFrame() {}
@@ -172,4 +174,14 @@ void MainFrame::OnNavigation(wxBookCtrlEvent& event)
 {
     event.Skip();
     m_log->AppendText("Navigation event\n");
+}
+
+void MainFrame::OnTabAreadDClicked(wxBookCtrlEvent& event)
+{
+    m_log->AppendText("Tab aread d-clicked!\n");
+}
+
+void MainFrame::OnTabDClicked(wxBookCtrlEvent& event)
+{
+    m_log->AppendText(wxString() << "Tab index=" << event.GetSelection() << " d-clicked!\n");
 }

@@ -18,6 +18,8 @@ public:
     void OnPageClosed(wxBookCtrlEvent& event);
     void OnPageClosing(wxBookCtrlEvent& event);
     void OnNavigation(wxBookCtrlEvent& event);
+    void OnTabAreadDClicked(wxBookCtrlEvent& event);
+    void OnTabDClicked(wxBookCtrlEvent& event);
     
 protected:
     virtual void OnShowFileListButton(wxCommandEvent& event);
