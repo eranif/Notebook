@@ -14,8 +14,12 @@ MainFrame::MainFrame(wxWindow* parent)
     menu->Append(wxID_COPY);
     menu->Append(wxID_PASTE);
 
-    m_book = new Notebook(
-        m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_LightTabs | kNotebook_EnableNavigationEvent);
+    m_book = new Notebook(m_mainPanel,
+                          wxID_ANY,
+                          wxDefaultPosition,
+                          wxDefaultSize,
+                          kNotebook_LightTabs | kNotebook_EnableNavigationEvent | kNotebook_AllowDnD |
+                              kNotebook_ShowFileListButton);
     m_book->SetMenu(menu);
 
     m_mainPanel->GetSizer()->Insert(0, m_book, 1, wxEXPAND | wxALL, 0);
@@ -176,12 +180,25 @@ void MainFrame::OnNavigation(wxBookCtrlEvent& event)
     m_log->AppendText("Navigation event\n");
 }
 
-void MainFrame::OnTabAreadDClicked(wxBookCtrlEvent& event)
-{
-    m_log->AppendText("Tab aread d-clicked!\n");
-}
+void MainFrame::OnTabAreadDClicked(wxBookCtrlEvent& event) { m_log->AppendText("Tab aread d-clicked!\n"); }
 
 void MainFrame::OnTabDClicked(wxBookCtrlEvent& event)
 {
     m_log->AppendText(wxString() << "Tab index=" << event.GetSelection() << " d-clicked!\n");
+}
+void MainFrame::OnDnDUI(wxUpdateUIEvent& event) { event.Check(m_book->GetStyle() & kNotebook_AllowDnD); }
+
+void MainFrame::OnShowFileListButtonUI(wxUpdateUIEvent& event)
+{
+    event.Check(m_book->GetStyle() & kNotebook_ShowFileListButton);
+}
+void MainFrame::OnBottomTabs(wxCommandEvent& event)
+{
+    size_t style = m_book->GetStyle();
+    if(event.IsChecked()) {
+        style |= kNotebook_BottomTabs;
+    } else {
+        style &= ~kNotebook_BottomTabs;
+    }
+    m_book->SetStyle(style);
 }

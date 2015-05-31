@@ -22,6 +22,9 @@ public:
     void OnTabDClicked(wxBookCtrlEvent& event);
     
 protected:
+    virtual void OnBottomTabs(wxCommandEvent& event);
+    virtual void OnDnDUI(wxUpdateUIEvent& event);
+    virtual void OnShowFileListButtonUI(wxUpdateUIEvent& event);
     virtual void OnShowFileListButton(wxCommandEvent& event);
     virtual void OnMouseMiddleCloses(wxCommandEvent& event);
     virtual void OnDeleteAllPages(wxCommandEvent& event);

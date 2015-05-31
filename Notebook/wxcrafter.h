@@ -32,13 +32,14 @@ class MainFrameBaseClass : public wxFrame
 {
 public:
     enum {
-        ID_CLOSE_ALL = 1001,
-        ID_CLOSE_ALLOW_TAB_MOVE = 1002,
-        ID_CLOSE_BUTTON = 1003,
-        ID_MOUSE_MIDDLE_CLOSE = 1004,
-        ID_SHOW_DROP_DOWNBUTTON = 1005,
-        ID_STYLE_DARK = 1006,
-        ID_STYLE_LIGHT = 1007,
+        ID_BOTTOM_TABS = 1001,
+        ID_CLOSE_ALL = 1002,
+        ID_CLOSE_ALLOW_TAB_MOVE = 1003,
+        ID_CLOSE_BUTTON = 1004,
+        ID_MOUSE_MIDDLE_CLOSE = 1005,
+        ID_SHOW_DROP_DOWNBUTTON = 1006,
+        ID_STYLE_DARK = 1007,
+        ID_STYLE_LIGHT = 1008,
     };
 protected:
     wxMenuBar* m_menuBar19;
@@ -51,6 +52,7 @@ protected:
     wxMenuItem* m_menuItemCloseAll;
     wxMenuItem* m_menuItemMouseMiddleClickCLoses;
     wxMenuItem* m_menuItemShowDropDownButton;
+    wxMenuItem* m_menuItemBottomTabs;
     wxMenuItem* m_separator;
     wxMenuItem* Exit;
     wxBoxSizer* boxSizer1;
@@ -61,10 +63,13 @@ protected:
 protected:
     virtual void OnTabStyle(wxCommandEvent& event) { event.Skip(); }
     virtual void OnAllowTabMove(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnDnDUI(wxUpdateUIEvent& event) { event.Skip(); }
     virtual void OnShowCloseButton(wxCommandEvent& event) { event.Skip(); }
     virtual void OnDeleteAllPages(wxCommandEvent& event) { event.Skip(); }
     virtual void OnMouseMiddleCloses(wxCommandEvent& event) { event.Skip(); }
     virtual void OnShowFileListButton(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnShowFileListButtonUI(wxUpdateUIEvent& event) { event.Skip(); }
+    virtual void OnBottomTabs(wxCommandEvent& event) { event.Skip(); }
     virtual void OnClose(wxCommandEvent& event) { event.Skip(); }
 
 public:
