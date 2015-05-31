@@ -295,7 +295,7 @@ clTabCtrl::clTabCtrl(wxWindow* notebook, size_t style)
     Bind(wxEVT_CONTEXT_MENU, &clTabCtrl::OnContextMenu, this);
     Bind(wxEVT_KEY_DOWN, &clTabCtrl::OnWindowKeyDown, this);
     Bind(wxEVT_LEFT_DCLICK, &clTabCtrl::OnLeftDClick, this);
-    
+
     notebook->Bind(wxEVT_KEY_DOWN, &clTabCtrl::OnWindowKeyDown, this);
     if(m_style & kNotebook_DarkTabs) {
         m_colours.InitDarkColours();
@@ -402,7 +402,9 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
         // Reduce the length of the tabs bitmap by 16 pixels (we will draw there the drop down
         // button)
         rect.SetWidth(rect.GetWidth() - 16);
-        m_chevronRect = wxRect(rect.GetTopRight(), wxSize(16, rect.GetHeight()));
+        m_chevronRect = wxRect(rect.GetTopRight(), wxSize(20, rect.GetHeight()));
+        m_chevronRect.SetHeight(m_chevronRect.GetHeight() - clTabInfo::BOTTOM_AREA_HEIGHT);
+        rect.SetWidth(rect.GetWidth() + 16);
     }
 
     if(m_tabs.empty()) {
@@ -481,18 +483,21 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
 #endif
         }
 
+        memDC.SelectObject(wxNullBitmap);
+        dc.DrawBitmap(bmpTabs, 0, 0);
+
         if(GetStyle() & kNotebook_ShowFileListButton) {
             // Draw the chevron
             wxCoord chevronX =
                 m_chevronRect.GetTopLeft().x + ((m_chevronRect.GetWidth() - m_colours.chevronDown.GetWidth()) / 2);
             wxCoord chevronY =
                 m_chevronRect.GetTopLeft().y + ((m_chevronRect.GetHeight() - m_colours.chevronDown.GetHeight()) / 2);
-            gcdc.DrawBitmap(m_colours.chevronDown, chevronX, chevronY);
+            dc.SetPen(m_colours.tabAreaColour);
+            dc.SetBrush(m_colours.tabAreaColour);
+            dc.DrawRectangle(m_chevronRect);
+            dc.DrawBitmap(m_colours.chevronDown, chevronX, chevronY);
         }
-        
-        memDC.SelectObject(wxNullBitmap);
-        dc.DrawBitmap(bmpTabs, 0, 0);
-        
+
     } else {
         m_visibleTabs.clear();
     }
@@ -536,34 +541,31 @@ void clTabCtrl::OnLeftDown(wxMouseEvent& event)
         return;
     }
 
-    // Get list of visible tabs
-    bool clickWasOnActiveTab = false;
-    for(size_t i = 0; i < m_visibleTabs.size(); ++i) {
-        clTabInfo::Ptr_t t = m_visibleTabs.at(i);
-        if(t->GetRect().Contains(event.GetPosition()) && !t->IsActive()) {
-            SetSelection(DoGetPageIndex(t->GetWindow()));
+    int tabHit, realPos;
+    TestPoint(event.GetPosition(), realPos, tabHit);
+    if(tabHit == wxNOT_FOUND) return;
+    
+    // Did we hit the active tab?
+    bool clickWasOnActiveTab = (GetSelection() == realPos);
+    
+    // If the click was not on the active tab, set the clicked 
+    // tab as the new selection and leave this function
+    if(!clickWasOnActiveTab) {
+        SetSelection(realPos);
+        return;
+    }
+    
+    // If we clicked on the active and we have a close button - handle it here
+    if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && clickWasOnActiveTab) {
+        // we clicked on the selected index
+        clTabInfo::Ptr_t t = m_visibleTabs.at(tabHit);
+        wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
+        if(xRect.Contains(event.GetPosition())) {
+            m_closeButtonClickedIndex = tabHit;
             return;
-
-        } else if(t->GetRect().Contains(event.GetPosition())) {
-            clickWasOnActiveTab = true;
-            break;
         }
     }
 
-    {
-        int tabHit, realPos;
-        TestPoint(event.GetPosition(), realPos, tabHit);
-        if(tabHit != wxNOT_FOUND) {
-            if((GetStyle() & kNotebook_CloseButtonOnActiveTab) && m_visibleTabs.at(tabHit)->IsActive()) {
-                // we clicked on the selected index
-                clTabInfo::Ptr_t t = m_visibleTabs.at(tabHit);
-                wxRect xRect(t->GetRect().x + t->GetBmpCloseX(), t->GetRect().y + t->GetBmpCloseY(), 16, 16);
-                if(xRect.Contains(event.GetPosition())) {
-                    m_closeButtonClickedIndex = tabHit;
-                }
-            }
-        }
-    }
     // We clicked on the active tab, start DnD operation
     if((m_style & kNotebook_AllowDnD) && clickWasOnActiveTab) {
         // We simply drag the active tab index
@@ -767,6 +769,19 @@ void clTabCtrl::TestPoint(const wxPoint& pt, int& realPosition, int& tabHit)
     tabHit = wxNOT_FOUND;
 
     if(m_visibleTabs.empty()) return;
+
+    // Because the tabs are overlapping, we need to test
+    // the active tab first
+    clTabInfo::Ptr_t activeTab = GetActiveTabInfo();
+    if(activeTab && activeTab->GetRect().Contains(pt)) {
+        for(size_t i = 0; i < m_visibleTabs.size(); ++i) {
+            if(m_visibleTabs.at(i)->GetWindow() == activeTab->GetWindow()) {
+                tabHit = i;
+                realPosition = DoGetPageIndex(m_visibleTabs.at(i)->GetWindow());
+                return;
+            }
+        }
+    }
 
     for(size_t i = 0; i < m_visibleTabs.size(); ++i) {
         clTabInfo::Ptr_t tab = m_visibleTabs.at(i);
