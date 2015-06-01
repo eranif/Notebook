@@ -32,6 +32,8 @@ MainFrame::MainFrame(wxWindow* parent)
         new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
         "Page One",
         true);
+    m_book->SetPageToolTip(0, _("What a colourful blocks!!"));
+    
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Two",
                     true);
@@ -117,25 +119,10 @@ void MainFrame::OnTabStyle(wxCommandEvent& event)
 
 void MainFrame::OnShowCloseButton(wxCommandEvent& event)
 {
-    size_t style = m_book->GetStyle();
-    if(event.IsChecked()) {
-        style |= kNotebook_CloseButtonOnActiveTab;
-    } else {
-        style &= ~kNotebook_CloseButtonOnActiveTab;
-    }
-    m_book->SetStyle(style);
+    m_book->EnableStyle(kNotebook_CloseButtonOnActiveTab, event.IsChecked());
 }
 
-void MainFrame::OnAllowTabMove(wxCommandEvent& event)
-{
-    size_t style = m_book->GetStyle();
-    if(event.IsChecked()) {
-        style |= kNotebook_AllowDnD;
-    } else {
-        style &= ~kNotebook_AllowDnD;
-    }
-    m_book->SetStyle(style);
-}
+void MainFrame::OnAllowTabMove(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_AllowDnD, event.IsChecked()); }
 void MainFrame::OnDeleteAllPages(wxCommandEvent& event) { m_book->DeleteAllPages(); }
 
 void MainFrame::OnPageClosed(wxBookCtrlEvent& event)
@@ -155,23 +142,12 @@ void MainFrame::OnPageClosing(wxBookCtrlEvent& event)
 
 void MainFrame::OnMouseMiddleCloses(wxCommandEvent& event)
 {
-    size_t style = m_book->GetStyle();
-    if(event.IsChecked()) {
-        style |= kNotebook_MouseMiddleClickClosesTab;
-    } else {
-        style &= ~kNotebook_MouseMiddleClickClosesTab;
-    }
-    m_book->SetStyle(style);
+    m_book->EnableStyle(kNotebook_MouseMiddleClickClosesTab, event.IsChecked());
 }
+
 void MainFrame::OnShowFileListButton(wxCommandEvent& event)
 {
-    size_t style = m_book->GetStyle();
-    if(event.IsChecked()) {
-        style |= kNotebook_ShowFileListButton;
-    } else {
-        style &= ~kNotebook_ShowFileListButton;
-    }
-    m_book->SetStyle(style);
+    m_book->EnableStyle(kNotebook_ShowFileListButton, event.IsChecked());
 }
 
 void MainFrame::OnNavigation(wxBookCtrlEvent& event)
@@ -192,13 +168,4 @@ void MainFrame::OnShowFileListButtonUI(wxUpdateUIEvent& event)
 {
     event.Check(m_book->GetStyle() & kNotebook_ShowFileListButton);
 }
-void MainFrame::OnBottomTabs(wxCommandEvent& event)
-{
-    size_t style = m_book->GetStyle();
-    if(event.IsChecked()) {
-        style |= kNotebook_BottomTabs;
-    } else {
-        style &= ~kNotebook_BottomTabs;
-    }
-    m_book->SetStyle(style);
-}
+void MainFrame::OnBottomTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_BottomTabs, event.IsChecked()); }
