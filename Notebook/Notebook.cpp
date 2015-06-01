@@ -819,11 +819,17 @@ void clTabCtrl::OnMouseMotion(wxMouseEvent& event)
 { 
     event.Skip();
     int realPos, tabHit;
+    wxString curtip = GetToolTipText();
     TestPoint(event.GetPosition(), realPos, tabHit);
     if(tabHit == wxNOT_FOUND || realPos == wxNOT_FOUND) {
-        SetToolTip("");
+        if(!curtip.IsEmpty()) {
+            SetToolTip("");
+        }
     } else {
-        SetToolTip(m_tabs.at(realPos)->GetTooltip());
+        wxString pagetip = m_tabs.at(realPos)->GetTooltip();
+        if(pagetip != curtip) {
+            SetToolTip(pagetip);
+        }
     }
 }
 
