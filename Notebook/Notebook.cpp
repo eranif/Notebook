@@ -12,6 +12,17 @@
 #include <wx/dnd.h>
 #include <wx/regex.h>
 
+#if defined(WXUSINGDLL_CL) || defined(USE_SFTP) || defined(PLUGINS_DIR)
+#define CL_BUILD 1
+#endif
+
+#if CL_BUILD
+#include "cl_command_event.h"
+#include "event_notifier.h"
+#include "codelite_events.h"
+#include "drawingutils.h"
+#endif
+
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGING, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CHANGED, wxBookCtrlEvent);
 wxDEFINE_EVENT(wxEVT_BOOK_PAGE_CLOSING, wxBookCtrlEvent);
@@ -230,12 +241,13 @@ void clTabInfo::Draw(wxDC& dc, const clTabInfo::Colours& colours, size_t style)
     // Draw the text
     dc.SetTextForeground(IsActive() ? colours.activeTabTextColour : colours.inactiveTabTextColour);
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+#if 0
 #ifdef __WXOSX__
     font.SetPointSize(10);
 #else
     font.SetPointSize(9);
 #endif
-
+#endif
     dc.SetFont(font);
     dc.DrawText(m_label, m_textX + m_rect.GetX(), m_textY);
 
@@ -249,7 +261,7 @@ int clTabInfo::X_SPACER = 5;
 int clTabInfo::BOTTOM_AREA_HEIGHT = 5;
 int clTabInfo::MAJOR_CURVE_WIDTH = 15;
 int clTabInfo::SMALL_CURVE_WIDTH = 3;
-int clTabInfo::TAB_HEIGHT = 30;
+int clTabInfo::TAB_HEIGHT = 35;
 
 static int OVERLAP_WIDTH = 20;
 
@@ -284,11 +296,14 @@ void clTabInfo::CalculateOffsets(size_t style)
     m_bmpCloseY = wxNOT_FOUND;
 
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
+#if 0
 #ifdef __WXOSX__
     font.SetPointSize(10);
 #else
     font.SetPointSize(9);
 #endif
+#endif
+
     memDC.SetFont(font);
     wxSize sz = memDC.GetTextExtent(m_label);
     m_height = TAB_HEIGHT;
@@ -415,6 +430,9 @@ bool clTabCtrl::IsActiveTabInList(const clTabInfo::Vec_t& tabs) const
 bool clTabCtrl::IsActiveTabVisible(const clTabInfo::Vec_t& tabs) const
 {
     wxRect clientRect(GetClientRect());
+    if(GetStyle() & kNotebook_ShowFileListButton) {
+        clientRect.SetWidth(clientRect.GetWidth() - 30);
+    }
     for(size_t i = 0; i < tabs.size(); ++i) {
         clTabInfo::Ptr_t t = tabs.at(i);
         if(t->IsActive() && clientRect.Intersects(t->GetRect())) return true;
@@ -498,9 +516,26 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
         return;
     }
 
+    // Draw the tab area background colours
+    clTabInfo::Ptr_t active_tab = GetActiveTabInfo();
+    wxColour tabAreaBgCol = m_colours.tabAreaColour;
+    clTabInfo::Colours activeTabColours = m_colours;
+
+#if CL_BUILD
+    if(active_tab && (GetStyle() & kNotebook_EnableColourCustomization)) {
+        // the background colour is set according to the active tab colour
+        clColourEvent colourEvent(wxEVT_COLOUR_TAB);
+        colourEvent.SetPage(active_tab->GetWindow());
+        if(EventNotifier::Get()->ProcessEvent(colourEvent)) {
+            tabAreaBgCol = colourEvent.GetBgColour();
+            activeTabColours.InitFromColours(colourEvent.GetBgColour(), colourEvent.GetFgColour());
+        }
+    }
+#endif
+
     // Draw background
-    dc.SetPen(m_colours.tabAreaColour);
-    dc.SetBrush(m_colours.tabAreaColour);
+    dc.SetPen(tabAreaBgCol);
+    dc.SetBrush(tabAreaBgCol);
     dc.DrawRectangle(GetClientRect());
 
     for(size_t i = 0; i < m_tabs.size(); ++i) {
@@ -512,8 +547,8 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
         wxMemoryDC memDC(bmpTabs);
         wxGCDC gcdc(memDC);
 
-        gcdc.SetPen(m_colours.tabAreaColour);
-        gcdc.SetBrush(m_colours.tabAreaColour);
+        gcdc.SetPen(tabAreaBgCol);
+        gcdc.SetBrush(tabAreaBgCol);
         gcdc.DrawRectangle(rect.GetSize());
 
         UpdateVisibleTabs();
@@ -524,17 +559,31 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
             if(tab->IsActive()) {
                 activeTabInex = i;
             }
+
+#if CL_BUILD
+            // send event per tab to get their colours
+            clColourEvent colourEvent(wxEVT_COLOUR_TAB);
+            colourEvent.SetPage(tab->GetWindow());
+            if((GetStyle() & kNotebook_EnableColourCustomization) && EventNotifier::Get()->ProcessEvent(colourEvent)) {
+                clTabInfo::Colours colours;
+                colours.InitFromColours(colourEvent.GetBgColour(), colourEvent.GetFgColour());
+                tab->Draw(gcdc, colours, m_style);
+            } else {
+                tab->Draw(gcdc, m_colours, m_style);
+            }
+#else
             tab->Draw(gcdc, m_colours, m_style);
+#endif
         }
 
         // Redraw the active tab
         if(activeTabInex != wxNOT_FOUND) {
-            m_visibleTabs.at(activeTabInex)->Draw(gcdc, m_colours, m_style);
+            m_visibleTabs.at(activeTabInex)->Draw(gcdc, activeTabColours, m_style);
         }
 
         if(activeTabInex != wxNOT_FOUND) {
             clTabInfo::Ptr_t activeTab = m_visibleTabs.at(activeTabInex);
-            DoDrawBottomBox(activeTab, clientRect, gcdc);
+            DoDrawBottomBox(activeTab, clientRect, gcdc, activeTabColours);
         }
 
         memDC.SelectObject(wxNullBitmap);
@@ -546,8 +595,8 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
                 m_chevronRect.GetTopLeft().x + ((m_chevronRect.GetWidth() - m_colours.chevronDown.GetWidth()) / 2);
             wxCoord chevronY =
                 m_chevronRect.GetTopLeft().y + ((m_chevronRect.GetHeight() - m_colours.chevronDown.GetHeight()) / 2);
-            dc.SetPen(m_colours.tabAreaColour);
-            dc.SetBrush(m_colours.tabAreaColour);
+            dc.SetPen(activeTabColours.tabAreaColour);
+            dc.SetBrush(activeTabColours.tabAreaColour);
             dc.DrawRectangle(m_chevronRect);
             dc.DrawBitmap(m_colours.chevronDown, chevronX, chevronY);
         }
@@ -815,8 +864,8 @@ void clTabCtrl::OnLeftUp(wxMouseEvent& event)
     }
 }
 
-void clTabCtrl::OnMouseMotion(wxMouseEvent& event) 
-{ 
+void clTabCtrl::OnMouseMotion(wxMouseEvent& event)
+{
     event.Skip();
     int realPos, tabHit;
     wxString curtip = GetToolTipText();
@@ -890,6 +939,46 @@ bool clTabCtrl::IsIndexValid(size_t index) const { return (index < m_tabs.size()
 
 clTabInfo::Colours::Colours() { InitDarkColours(); }
 
+void clTabInfo::Colours::InitFromColours(const wxColour& baseColour, const wxColour& textColour)
+{
+#if CL_BUILD
+    if(DrawingUtils::IsDark(baseColour)) {
+        activeTabTextColour = "WHITE";
+        activeTabBgColour = baseColour;
+        activeTabPenColour = baseColour.ChangeLightness(80);
+        activeTabInnerPenColour = baseColour.ChangeLightness(120);
+
+        inactiveTabTextColour = "WHITE";
+        inactiveTabBgColour = baseColour.ChangeLightness(110);
+        inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(80);
+        inactiveTabInnerPenColour = inactiveTabBgColour.ChangeLightness(120);
+
+        tabAreaColour = baseColour.ChangeLightness(130);
+        // 12x12 bitmap
+        closeButton = wxXmlResource::Get()->LoadBitmap("notebook-dark-x");
+        chevronDown = wxXmlResource::Get()->LoadBitmap("chevron-down-grey");
+    } else {
+        activeTabTextColour = "BLACK";
+        activeTabBgColour = baseColour;
+        activeTabPenColour = baseColour.ChangeLightness(80);
+        activeTabInnerPenColour = "WHITE";
+
+        inactiveTabTextColour = "BLACK";
+        inactiveTabBgColour = baseColour.ChangeLightness(90);
+        inactiveTabPenColour = inactiveTabBgColour.ChangeLightness(80);
+        inactiveTabInnerPenColour = baseColour;
+
+        tabAreaColour = baseColour.ChangeLightness(130);
+        // 12x12 bitmap
+        closeButton = wxXmlResource::Get()->LoadBitmap("notebook-light-x");
+        chevronDown = wxXmlResource::Get()->LoadBitmap("chevron-down-black");
+    }
+#else
+    wxUnusedVar(baseColour);
+    wxUnusedVar(textColour);
+#endif
+}
+
 void clTabInfo::Colours::InitDarkColours()
 {
     activeTabTextColour = "WHITE";
@@ -902,7 +991,7 @@ void clTabInfo::Colours::InitDarkColours()
     inactiveTabPenColour = wxColour("#100f0f");
     inactiveTabInnerPenColour = wxColour("#535252");
 
-    tabAreaColour = wxColour("#131111").ChangeLightness(110);
+    tabAreaColour = wxColour("#131111").ChangeLightness(115);
     // 12x12 bitmap
     closeButton = wxXmlResource::Get()->LoadBitmap("notebook-dark-x");
     chevronDown = wxXmlResource::Get()->LoadBitmap("chevron-down-grey");
@@ -1295,12 +1384,15 @@ void clTabCtrl::OnLeftDClick(wxMouseEvent& event)
     }
 }
 
-void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab, const wxRect& clientRect, wxDC& dc)
+void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab,
+                                const wxRect& clientRect,
+                                wxDC& dc,
+                                const clTabInfo::Colours& colours)
 {
     if(GetStyle() & kNotebook_BottomTabs) {
         // Draw 3 lines at the top
-        dc.SetPen(m_colours.activeTabPenColour);
-        dc.SetBrush(m_colours.activeTabBgColour);
+        dc.SetPen(colours.activeTabPenColour);
+        dc.SetBrush(colours.activeTabBgColour);
         wxPoint topLeft = clientRect.GetTopLeft();
         wxSize rectSize(clientRect.width, clTabInfo::BOTTOM_AREA_HEIGHT);
         topLeft.y = 0;
@@ -1321,7 +1413,7 @@ void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab, const wxRect& client
         to.y += clTabInfo::BOTTOM_AREA_HEIGHT - 1;
         to.x -= 2;
 
-        dc.SetPen(m_colours.activeTabBgColour);
+        dc.SetPen(colours.activeTabBgColour);
         dc.DrawLine(from, to);
 #ifdef __WXOSX__
         dc.DrawLine(from, to);
@@ -1331,8 +1423,8 @@ void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab, const wxRect& client
 
     } else {
         // Draw 3 lines at the bottom
-        dc.SetPen(m_colours.activeTabPenColour);
-        dc.SetBrush(m_colours.activeTabBgColour);
+        dc.SetPen(colours.activeTabPenColour);
+        dc.SetBrush(colours.activeTabBgColour);
         wxPoint topLeft = clientRect.GetBottomLeft();
         wxSize rectSize(clientRect.width, clTabInfo::BOTTOM_AREA_HEIGHT);
         topLeft.y -= rectSize.GetHeight() - 1;
@@ -1353,7 +1445,7 @@ void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab, const wxRect& client
         to.y -= clTabInfo::BOTTOM_AREA_HEIGHT - 1;
         to.x -= 2;
 
-        dc.SetPen(m_colours.activeTabBgColour);
+        dc.SetPen(colours.activeTabBgColour);
         dc.DrawLine(from, to);
 #ifdef __WXOSX__
         dc.DrawLine(from, to);
