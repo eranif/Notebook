@@ -381,7 +381,12 @@ public:
      * styles OR-ed)
      */
     void SetStyle(size_t style);
-
+    
+    /**
+     * @brief set the tab direction
+     */
+    void SetTabDirection(wxDirection d);
+    
     /**
      * @brief return the book style
      */

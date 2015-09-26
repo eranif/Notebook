@@ -152,6 +152,24 @@ void Notebook::EnableStyle(NotebookStyle style, bool enable)
     SetStyle(flags);
 }
 
+void Notebook::SetTabDirection(wxDirection d)
+{
+    size_t flags = GetStyle();
+    // Clear all direction styles
+    flags &= ~kNotebook_BottomTabs;
+    flags &= ~kNotebook_LeftTabs;
+    flags &= ~kNotebook_RightTabs;
+    
+    if(d == wxBOTTOM) {
+        flags |= kNotebook_BottomTabs;
+    } else if(d == wxRIGHT) {
+        flags |= kNotebook_RightTabs;
+    } else if(d == wxLEFT) {
+        flags |= kNotebook_LeftTabs;
+    }
+    SetStyle(flags);
+}
+
 //----------------------------------------------------------
 // Tab label
 //----------------------------------------------------------
