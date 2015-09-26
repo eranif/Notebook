@@ -33,7 +33,7 @@ MainFrame::MainFrame(wxWindow* parent)
         "Page One",
         true);
     m_book->SetPageToolTip(0, _("What a colourful blocks!!"));
-    
+
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
                     "Page Two",
                     true);
@@ -169,3 +169,5 @@ void MainFrame::OnShowFileListButtonUI(wxUpdateUIEvent& event)
     event.Check(m_book->GetStyle() & kNotebook_ShowFileListButton);
 }
 void MainFrame::OnBottomTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_BottomTabs, event.IsChecked()); }
+void MainFrame::OnRightTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_RightTabs, event.IsChecked()); }
+void MainFrame::OnLeftTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_LeftTabs, event.IsChecked()); }

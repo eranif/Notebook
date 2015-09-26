@@ -38,6 +38,14 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     m_styleLight = new wxMenuItem(m_menu29, ID_STYLE_LIGHT, _("Light Tabs"), wxT(""), wxITEM_NORMAL);
     m_menu29->Append(m_styleLight);
     
+    m_menu29->AppendSeparator();
+    
+    m_styleLeft = new wxMenuItem(m_menu29, ID_LEFT_SIZE_TABS, _("Left Side Tabs"), wxT(""), wxITEM_CHECK);
+    m_menu29->Append(m_styleLeft);
+    
+    m_styleRight = new wxMenuItem(m_menu29, ID_RIGHT_SIZE_TABS, _("Right Side Tabs"), wxT(""), wxITEM_CHECK);
+    m_menu29->Append(m_styleRight);
+    
     m_menuItemMove = new wxMenuItem(m_menu21, ID_CLOSE_ALLOW_TAB_MOVE, _("Allow tabs to move"), wxT(""), wxITEM_CHECK);
     m_menu21->Append(m_menuItemMove);
     
@@ -61,14 +69,14 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     Exit = new wxMenuItem(m_menu21, wxID_EXIT, _("Exit\tAlt-F4"), wxT(""), wxITEM_NORMAL);
     m_menu21->Append(Exit);
     
-    boxSizer1 = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* boxSizer1 = new wxBoxSizer(wxVERTICAL);
     this->SetSizer(boxSizer1);
     
     m_mainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL);
     
     boxSizer1->Add(m_mainPanel, 1, wxEXPAND, 5);
     
-    boxSizer11 = new wxBoxSizer(wxVERTICAL);
+    wxBoxSizer* boxSizer11 = new wxBoxSizer(wxVERTICAL);
     m_mainPanel->SetSizer(boxSizer11);
     
     m_log = new wxTextCtrl(m_mainPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(-1,-1), wxTE_RICH|wxTE_MULTILINE);
@@ -77,10 +85,14 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     
     SetName(wxT("MainFrameBaseClass"));
     SetSizeHints(-1,-1);
-    if ( GetSizer() ) {
+    if (GetSizer()) {
          GetSizer()->Fit(this);
     }
-    CentreOnParent(wxBOTH);
+    if(GetParent()) {
+        CentreOnParent(wxBOTH);
+    } else {
+        CentreOnScreen(wxBOTH);
+    }
 #if wxVERSION_NUMBER >= 2900
     if(!wxPersistenceManager::Get().Find(this)) {
         wxPersistenceManager::Get().RegisterAndRestore(this);
@@ -91,6 +103,8 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     // Connect events
     this->Connect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Connect(m_styleLeft->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
+    this->Connect(m_styleRight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
     this->Connect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
     this->Connect(m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL, this);
     this->Connect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
@@ -107,6 +121,8 @@ MainFrameBaseClass::~MainFrameBaseClass()
 {
     this->Disconnect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Disconnect(m_styleLeft->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
+    this->Disconnect(m_styleRight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL, this);
     this->Disconnect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);

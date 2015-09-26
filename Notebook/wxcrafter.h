@@ -36,10 +36,12 @@ public:
         ID_CLOSE_ALL = 1002,
         ID_CLOSE_ALLOW_TAB_MOVE = 1003,
         ID_CLOSE_BUTTON = 1004,
-        ID_MOUSE_MIDDLE_CLOSE = 1005,
-        ID_SHOW_DROP_DOWNBUTTON = 1006,
-        ID_STYLE_DARK = 1007,
-        ID_STYLE_LIGHT = 1008,
+        ID_LEFT_SIZE_TABS = 1005,
+        ID_MOUSE_MIDDLE_CLOSE = 1006,
+        ID_RIGHT_SIZE_TABS = 1007,
+        ID_SHOW_DROP_DOWNBUTTON = 1008,
+        ID_STYLE_DARK = 1009,
+        ID_STYLE_LIGHT = 1010,
     };
 protected:
     wxMenuBar* m_menuBar19;
@@ -47,6 +49,9 @@ protected:
     wxMenu* m_menu29;
     wxMenuItem* m_styleDark;
     wxMenuItem* m_styleLight;
+    wxMenuItem* m_menuItem53;
+    wxMenuItem* m_styleLeft;
+    wxMenuItem* m_styleRight;
     wxMenuItem* m_menuItemMove;
     wxMenuItem* m_menuItemShowCloseButton;
     wxMenuItem* m_menuItemCloseAll;
@@ -55,13 +60,13 @@ protected:
     wxMenuItem* m_menuItemBottomTabs;
     wxMenuItem* m_separator;
     wxMenuItem* Exit;
-    wxBoxSizer* boxSizer1;
     wxPanel* m_mainPanel;
-    wxBoxSizer* boxSizer11;
     wxTextCtrl* m_log;
 
 protected:
     virtual void OnTabStyle(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnLeftTabs(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnRightTabs(wxCommandEvent& event) { event.Skip(); }
     virtual void OnAllowTabMove(wxCommandEvent& event) { event.Skip(); }
     virtual void OnDnDUI(wxUpdateUIEvent& event) { event.Skip(); }
     virtual void OnShowCloseButton(wxCommandEvent& event) { event.Skip(); }
