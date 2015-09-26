@@ -40,11 +40,17 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     
     m_menu29->AppendSeparator();
     
-    m_styleLeft = new wxMenuItem(m_menu29, ID_LEFT_SIZE_TABS, _("Left Side Tabs"), wxT(""), wxITEM_CHECK);
+    m_menuItem55 = new wxMenuItem(m_menu29, ID_TOP_TABS, _("Top Tabs"), wxT(""), wxITEM_RADIO);
+    m_menu29->Append(m_menuItem55);
+    
+    m_styleLeft = new wxMenuItem(m_menu29, ID_LEFT_SIZE_TABS, _("Left Side Tabs"), wxT(""), wxITEM_RADIO);
     m_menu29->Append(m_styleLeft);
     
-    m_styleRight = new wxMenuItem(m_menu29, ID_RIGHT_SIZE_TABS, _("Right Side Tabs"), wxT(""), wxITEM_CHECK);
+    m_styleRight = new wxMenuItem(m_menu29, ID_RIGHT_SIZE_TABS, _("Right Side Tabs"), wxT(""), wxITEM_RADIO);
     m_menu29->Append(m_styleRight);
+    
+    m_menuItemBottomTabs = new wxMenuItem(m_menu29, ID_BOTTOM_TABS, _("Bottom Tabs"), wxT(""), wxITEM_RADIO);
+    m_menu29->Append(m_menuItemBottomTabs);
     
     m_menuItemMove = new wxMenuItem(m_menu21, ID_CLOSE_ALLOW_TAB_MOVE, _("Allow tabs to move"), wxT(""), wxITEM_CHECK);
     m_menu21->Append(m_menuItemMove);
@@ -60,9 +66,6 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     
     m_menuItemShowDropDownButton = new wxMenuItem(m_menu21, ID_SHOW_DROP_DOWNBUTTON, _("Show File List Button"), wxT(""), wxITEM_CHECK);
     m_menu21->Append(m_menuItemShowDropDownButton);
-    
-    m_menuItemBottomTabs = new wxMenuItem(m_menu21, ID_BOTTOM_TABS, _("Use bottom tabs"), wxT(""), wxITEM_CHECK);
-    m_menu21->Append(m_menuItemBottomTabs);
     
     m_menu21->AppendSeparator();
     
@@ -103,8 +106,10 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     // Connect events
     this->Connect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Connect(m_menuItem55->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTopTabs), NULL, this);
     this->Connect(m_styleLeft->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
     this->Connect(m_styleRight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
+    this->Connect(m_menuItemBottomTabs->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
     this->Connect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
     this->Connect(m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL, this);
     this->Connect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
@@ -112,7 +117,6 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     this->Connect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
     this->Connect(m_menuItemShowDropDownButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
     this->Connect(m_menuItemShowDropDownButton->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnShowFileListButtonUI), NULL, this);
-    this->Connect(m_menuItemBottomTabs->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
     this->Connect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }
@@ -121,8 +125,10 @@ MainFrameBaseClass::~MainFrameBaseClass()
 {
     this->Disconnect(m_styleDark->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_styleLight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+    this->Disconnect(m_menuItem55->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnTopTabs), NULL, this);
     this->Disconnect(m_styleLeft->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
     this->Disconnect(m_styleRight->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
+    this->Disconnect(m_menuItemBottomTabs->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL, this);
     this->Disconnect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
@@ -130,7 +136,6 @@ MainFrameBaseClass::~MainFrameBaseClass()
     this->Disconnect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
     this->Disconnect(m_menuItemShowDropDownButton->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
     this->Disconnect(m_menuItemShowDropDownButton->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnShowFileListButtonUI), NULL, this);
-    this->Disconnect(m_menuItemBottomTabs->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
     this->Disconnect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
     
 }

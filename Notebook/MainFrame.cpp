@@ -168,6 +168,7 @@ void MainFrame::OnShowFileListButtonUI(wxUpdateUIEvent& event)
 {
     event.Check(m_book->GetStyle() & kNotebook_ShowFileListButton);
 }
-void MainFrame::OnBottomTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_BottomTabs, event.IsChecked()); }
-void MainFrame::OnRightTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_RightTabs, event.IsChecked()); }
-void MainFrame::OnLeftTabs(wxCommandEvent& event) { m_book->EnableStyle(kNotebook_LeftTabs, event.IsChecked()); }
+void MainFrame::OnBottomTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxBOTTOM); }
+void MainFrame::OnTopTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxTOP); }
+void MainFrame::OnRightTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxRIGHT); }
+void MainFrame::OnLeftTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxLEFT); }

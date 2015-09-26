@@ -314,13 +314,13 @@ void clTabInfo::Draw(wxDC& dc, const clTabInfo::Colours& colours, size_t style)
         // Redraw the frame of the tab
         dc.SetPen(penColour);
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(m_rect, 2.0);
+        dc.DrawRoundedRectangle(m_rect, 1);
 
         wxRect innerRect = m_rect;
         innerRect.Deflate(1);
         dc.SetPen(IsActive() ? colours.activeTabInnerPenColour : colours.inactiveTabInnerPenColour);
         dc.SetBrush(*wxTRANSPARENT_BRUSH);
-        dc.DrawRoundedRectangle(innerRect, 2.0);
+        dc.DrawRoundedRectangle(innerRect, 1);
 
     } else {
         // Draw bitmap
@@ -1140,11 +1140,15 @@ void clTabInfo::Colours::InitDarkColours()
 void clTabInfo::Colours::InitLightColours()
 {
     activeTabTextColour = "#444444";
-    activeTabBgColour = "#f0f0f0";
     activeTabPenColour = "#b9b9b9";
     activeTabInnerPenColour = "#ffffff";
 
     inactiveTabTextColour = "#444444";
+#ifdef __WXMSW__
+    activeTabBgColour = "#FBFBFB";
+#else
+    activeTabBgColour = "#f0f0f0";
+#endif
     inactiveTabBgColour = "#e5e5e5";
     inactiveTabPenColour = "#b9b9b9";
     inactiveTabInnerPenColour = "#ffffff";

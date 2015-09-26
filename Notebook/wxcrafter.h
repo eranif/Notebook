@@ -42,6 +42,7 @@ public:
         ID_SHOW_DROP_DOWNBUTTON = 1008,
         ID_STYLE_DARK = 1009,
         ID_STYLE_LIGHT = 1010,
+        ID_TOP_TABS = 1011,
     };
 protected:
     wxMenuBar* m_menuBar19;
@@ -50,14 +51,15 @@ protected:
     wxMenuItem* m_styleDark;
     wxMenuItem* m_styleLight;
     wxMenuItem* m_menuItem53;
+    wxMenuItem* m_menuItem55;
     wxMenuItem* m_styleLeft;
     wxMenuItem* m_styleRight;
+    wxMenuItem* m_menuItemBottomTabs;
     wxMenuItem* m_menuItemMove;
     wxMenuItem* m_menuItemShowCloseButton;
     wxMenuItem* m_menuItemCloseAll;
     wxMenuItem* m_menuItemMouseMiddleClickCLoses;
     wxMenuItem* m_menuItemShowDropDownButton;
-    wxMenuItem* m_menuItemBottomTabs;
     wxMenuItem* m_separator;
     wxMenuItem* Exit;
     wxPanel* m_mainPanel;
@@ -65,8 +67,10 @@ protected:
 
 protected:
     virtual void OnTabStyle(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnTopTabs(wxCommandEvent& event) { event.Skip(); }
     virtual void OnLeftTabs(wxCommandEvent& event) { event.Skip(); }
     virtual void OnRightTabs(wxCommandEvent& event) { event.Skip(); }
+    virtual void OnBottomTabs(wxCommandEvent& event) { event.Skip(); }
     virtual void OnAllowTabMove(wxCommandEvent& event) { event.Skip(); }
     virtual void OnDnDUI(wxUpdateUIEvent& event) { event.Skip(); }
     virtual void OnShowCloseButton(wxCommandEvent& event) { event.Skip(); }
@@ -74,7 +78,6 @@ protected:
     virtual void OnMouseMiddleCloses(wxCommandEvent& event) { event.Skip(); }
     virtual void OnShowFileListButton(wxCommandEvent& event) { event.Skip(); }
     virtual void OnShowFileListButtonUI(wxUpdateUIEvent& event) { event.Skip(); }
-    virtual void OnBottomTabs(wxCommandEvent& event) { event.Skip(); }
     virtual void OnClose(wxCommandEvent& event) { event.Skip(); }
 
 public:
