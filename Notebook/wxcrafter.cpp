@@ -82,9 +82,9 @@ MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wx
     wxBoxSizer* boxSizer11 = new wxBoxSizer(wxVERTICAL);
     m_mainPanel->SetSizer(boxSizer11);
     
-    m_log = new wxTextCtrl(m_mainPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(-1,-1), wxTE_RICH|wxTE_MULTILINE);
+    m_log = new wxTextCtrl(m_mainPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxSize(-1,150), wxTE_RICH|wxTE_MULTILINE);
     
-    boxSizer11->Add(m_log, 1, wxALL|wxEXPAND, 5);
+    boxSizer11->Add(m_log, 0, wxALL|wxEXPAND, 5);
     
     SetName(wxT("MainFrameBaseClass"));
     SetSizeHints(-1,-1);
