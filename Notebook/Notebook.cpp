@@ -28,7 +28,7 @@ int clTabInfo::MAJOR_CURVE_WIDTH = 15;
 int clTabInfo::SMALL_CURVE_WIDTH = 4;
 // int clTabInfo::TAB_HEIGHT = 30;
 static int OVERLAP_WIDTH = 20;
-static int V_OVERLAP_WIDTH = 20;
+static int V_OVERLAP_WIDTH = 3;
 
 #if CL_BUILD
 #include "cl_command_event.h"
@@ -295,7 +295,7 @@ void clTabInfo::Draw(wxDC& dc, const clTabInfo::Colours& colours, size_t style)
             }
         } else {
             // Inactive tabs
-            wxDirection direction = ((style & kNotebook_LeftTabs) ? wxNORTH : wxNORTH);
+            wxDirection direction = wxNORTH;
             wxPoint basePoint = ((style & kNotebook_LeftTabs) ? rotatedRect.GetLeftTop() : rotatedRect.GetRightTop());
             {
                 wxPoint pt = basePoint;
