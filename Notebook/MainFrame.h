@@ -20,6 +20,7 @@ public:
     void OnNavigation(wxBookCtrlEvent& event);
     void OnTabAreadDClicked(wxBookCtrlEvent& event);
     void OnTabDClicked(wxBookCtrlEvent& event);
+    void OnTabRClick(wxBookCtrlEvent& event);
     
 protected:
     virtual void OnLeftTabs(wxCommandEvent& event);

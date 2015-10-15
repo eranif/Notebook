@@ -58,6 +58,7 @@ MainFrame::MainFrame(wxWindow* parent)
     m_book->Bind(wxEVT_BOOK_NAVIGATING, &MainFrame::OnNavigation, this);
     m_book->Bind(wxEVT_BOOK_TABAREA_DCLICKED, &MainFrame::OnTabAreadDClicked, this);
     m_book->Bind(wxEVT_BOOK_TAB_DCLICKED, &MainFrame::OnTabDClicked, this);
+    m_book->Bind(wxEVT_BOOK_TAB_RCLICK, &MainFrame::OnTabRClick, this);
 }
 
 MainFrame::~MainFrame() {}
@@ -172,3 +173,10 @@ void MainFrame::OnBottomTabs(wxCommandEvent& event) { m_book->SetTabDirection(wx
 void MainFrame::OnTopTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxTOP); }
 void MainFrame::OnRightTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxRIGHT); }
 void MainFrame::OnLeftTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxLEFT); }
+
+void MainFrame::OnTabRClick(wxBookCtrlEvent& event)
+{
+    wxString message;
+    message << "Tab " << event.GetSelection() << " right clicked\n";
+    m_log->AppendText(message);
+}
