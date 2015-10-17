@@ -66,14 +66,20 @@ Notebook::Notebook(wxWindow* parent,
         wxXmlResource::Get()->AddHandler(new wxBitmapXmlHandler);
         Notebook_Init_Bitmaps();
         once = true;
-    }
-
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    SetSizer(sizer);
+    } 
 
     m_tabCtrl = new clTabCtrl(this, style);
     m_windows = new WindowStack(this);
-
+     
+    wxBoxSizer* sizer ;
+    if(IsVerticalTabs()) {
+        sizer = new wxBoxSizer(wxHORIZONTAL);
+    } else {
+        sizer = new wxBoxSizer(wxVERTICAL);
+    }
+    
+    SetSizer(sizer);
+    
     if(GetStyle() & kNotebook_BottomTabs) {
         sizer->Add(m_windows, 1, wxEXPAND);
         sizer->Add(m_tabCtrl, 0, wxEXPAND);
