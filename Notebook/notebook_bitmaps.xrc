@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 wxrc /n Notebook_Init_Bitmaps /c /v /o notebook_bitmaps.cpp notebook_bitmaps.xrc 
+wxrc -n Notebook_Init_Bitmaps -c -v -o notebook_bitmaps.cpp notebook_bitmaps.xrc 
 -->
 <resource>
-    <object class="wxBitmap" name="notebook-dark-x">bitmaps/fileclose-dark.png</object>
+    <object class="wxBitmap" name="notebook-light-x@2x">bitmaps/fileclose@2x.png</object>
     <object class="wxBitmap" name="notebook-light-x">bitmaps/fileclose.png</object>
     <object class="wxBitmap" name="chevron-down-black">bitmaps/chevron-down-black.png</object>
     <object class="wxBitmap" name="chevron-down-grey">bitmaps/chevron-down-grey.png</object>
+    <object class="wxBitmap" name="notebook-dark-x">bitmaps/fileclose-white.png</object>
+    <object class="wxBitmap" name="notebook-dark-x@2x">bitmaps/fileclose-white@2x.png</object>
+    <object class="wxBitmap" name="chevron-down-black@2x">bitmaps/chevron-down-black@2x.png</object>
+    <object class="wxBitmap" name="chevron-down-grey@2x">bitmaps/chevron-down-grey@2x.png</object>
 </resource>

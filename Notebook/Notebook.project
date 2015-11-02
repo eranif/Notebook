@@ -63,6 +63,16 @@
     <File Name="notebook_bitmaps.cpp"/>
     <File Name="windowstack.cpp"/>
     <File Name="windowstack.h"/>
+    <VirtualDirectory Name="bitmaps">
+      <File Name="bitmaps/chevron-down-black.png"/>
+      <File Name="bitmaps/chevron-down-black@2x.png"/>
+      <File Name="bitmaps/chevron-down-grey.png"/>
+      <File Name="bitmaps/chevron-down-grey@2x.png"/>
+      <File Name="bitmaps/fileclose-white.png"/>
+      <File Name="bitmaps/fileclose-white@2x.png"/>
+      <File Name="bitmaps/fileclose.png"/>
+      <File Name="bitmaps/fileclose@2x.png"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="osx">
     <File Name="Info.plist"/>

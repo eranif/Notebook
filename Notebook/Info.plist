@@ -5,6 +5,9 @@
 
     <key>CFBundleExecutable</key>
     <string>Notebook</string>
+    
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
 
     <key>CFBundleGetInfoString</key>
     <string>Notebook, version 1.0, copyright myself</string>
