@@ -31,6 +31,7 @@ static int OVERLAP_WIDTH = 20;
 static int V_OVERLAP_WIDTH = 3;
 
 #if CL_BUILD
+#include "file_logger.h"
 #include "cl_command_event.h"
 #include "event_notifier.h"
 #include "codelite_events.h"
@@ -50,10 +51,6 @@ wxDEFINE_EVENT(wxEVT_BOOK_TABAREA_DCLICKED, wxBookCtrlEvent);
 #define IS_VERTICAL_TABS(style) ((style & kNotebook_RightTabs) || (style & kNotebook_LeftTabs))
 
 extern void Notebook_Init_Bitmaps();
-
-static int GetBitmapWidth(const wxBitmap& bmp) { return bmp.GetWidth() / bmp.GetScaleFactor(); }
-
-static int GetBitmapHeight(const wxBitmap& bmp) { return bmp.GetHeight() / bmp.GetScaleFactor(); }
 
 Notebook::Notebook(
     wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
@@ -472,8 +469,8 @@ void clTabInfo::CalculateOffsets(size_t style)
     if(m_bitmap.IsOk()) {
         m_bmpX = m_width;
         m_width += X_SPACER;
-        m_width += GetBitmapWidth(m_bitmap);
-        m_bmpY = ((m_height - GetBitmapHeight(m_bitmap)) / 2);
+        m_width += m_bitmap.GetScaledWidth();
+        m_bmpY = ((m_height - m_bitmap.GetScaledHeight()) / 2);
     }
 
     // Text
@@ -544,6 +541,7 @@ clTabCtrl::clTabCtrl(wxWindow* notebook, size_t style)
     , m_closeButtonClickedIndex(wxNOT_FOUND)
     , m_contextMenu(NULL)
 {
+    SetBackgroundStyle(wxBG_STYLE_PAINT);
     wxBitmap bmp(1, 1);
     wxMemoryDC memDC(bmp);
     wxFont font = wxSystemSettings::GetFont(wxSYS_DEFAULT_GUI_FONT);
@@ -652,11 +650,19 @@ clTabCtrl::~clTabCtrl()
 void clTabCtrl::OnWindowKeyDown(wxKeyEvent& event)
 {
     if(GetStyle() & kNotebook_EnableNavigationEvent) {
-        if(event.ControlDown()) {
-            switch(event.GetKeyCode()) {
+#ifdef __WXOSX__
+        if(event.AltDown())
+#else
+        if(event.CmdDown())
+#endif
+        {
+            switch(event.GetUnicodeKey()) {
             case WXK_TAB:
             case WXK_PAGEDOWN:
             case WXK_PAGEUP: {
+#if CL_BUILD
+                CL_DEBUG("Firing navigation event");
+#endif
                 // Fire the navigation event
                 wxBookCtrlEvent e(wxEVT_BOOK_NAVIGATING);
                 e.SetEventObject(GetParent());
@@ -695,7 +701,7 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
     if((GetStyle() & kNotebook_ShowFileListButton)) {
         if(IsVerticalTabs()) {
             rect.SetHeight(rect.GetHeight() - 16);
-            m_chevronRect = wxRect(rect.GetBottomLeft(), wxSize(rect.GetWidth(), 20));
+            m_chevronRect = wxRect(rect.GetTopLeft(), wxSize(rect.GetWidth(), 20));
             if(GetStyle() & kNotebook_RightTabs) {
                 m_chevronRect.x += clTabInfo::BOTTOM_AREA_HEIGHT;
             } else {
@@ -799,10 +805,10 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
 
         if((GetStyle() & kNotebook_ShowFileListButton)) {
             // Draw the chevron
-            wxCoord chevronX =
-                m_chevronRect.GetTopLeft().x + ((m_chevronRect.GetWidth() - GetBitmapWidth(m_colours.chevronDown)) / 2);
+            wxCoord chevronX = m_chevronRect.GetTopLeft().x +
+                ((m_chevronRect.GetWidth() - m_colours.chevronDown.GetScaledHeight()) / 2);
             wxCoord chevronY = m_chevronRect.GetTopLeft().y +
-                               ((m_chevronRect.GetHeight() - GetBitmapHeight(m_colours.chevronDown)) / 2);
+                ((m_chevronRect.GetHeight() - m_colours.chevronDown.GetScaledHeight()) / 2);
             // dc.SetPen(activeTabColours.tabAreaColour);
             // dc.SetBrush(*wxTRANSPARENT_BRUSH);
             // dc.DrawRectangle(m_chevronRect);
@@ -1635,10 +1641,8 @@ void clTabCtrl::OnLeftDClick(wxMouseEvent& event)
     }
 }
 
-void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab,
-                                const wxRect& clientRect,
-                                wxDC& dc,
-                                const clTabInfo::Colours& colours)
+void clTabCtrl::DoDrawBottomBox(
+    clTabInfo::Ptr_t activeTab, const wxRect& clientRect, wxDC& dc, const clTabInfo::Colours& colours)
 {
     if(GetStyle() & kNotebook_LeftTabs) {
         // Draw 3 lines on the right
