@@ -29,6 +29,7 @@ To start using the `Notebook` class, include the following files in your project
  - `notebook_bitmaps.cpp`
  - `windowstack.h`
  - `windowstack.cpp`
+ - `notebook_exports.h`
 
 **Prerequisites**
 
