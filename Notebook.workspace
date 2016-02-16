@@ -3,15 +3,19 @@
   <Project Name="Notebook" Path="Notebook/Notebook.project" Active="Yes"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="no">
+      <Environment/>
       <Project Name="Notebook" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release" Selected="no">
+      <Environment/>
       <Project Name="Notebook" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug_Linux" Selected="no">
+    <WorkspaceConfiguration Name="Debug_Linux" Selected="yes">
+      <Environment/>
       <Project Name="Notebook" ConfigName="Debug_Linux"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="osx" Selected="yes">
+    <WorkspaceConfiguration Name="osx" Selected="no">
+      <Environment/>
       <Project Name="Notebook" ConfigName="osx"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

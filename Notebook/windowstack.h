@@ -29,23 +29,7 @@
 #include <vector>
 #include "wx/panel.h"
 #include "wx/sizer.h"
-
-
-#ifdef WXDLLIMPEXP_SDK
-#undef WXDLLIMPEXP_SDK
-#endif
-
-#ifdef __WXMSW__
-#ifdef WXMAKINGDLL_SDK
-#define WXDLLIMPEXP_SDK __declspec(dllexport)
-#elif defined(WXUSINGDLL_SDK)
-#define WXDLLIMPEXP_SDK __declspec(dllimport)
-#else // not making nor using DLL
-#define WXDLLIMPEXP_SDK
-#endif
-#else
-#define WXDLLIMPEXP_SDK
-#endif
+#include "notebook_exports.h"
 
 class WXDLLIMPEXP_SDK WindowStack : public wxPanel
 {
