@@ -73,6 +73,7 @@
       <File Name="bitmaps/fileclose.png"/>
       <File Name="bitmaps/fileclose@2x.png"/>
     </VirtualDirectory>
+    <File Name="notebook_exports.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="osx">
     <File Name="Info.plist"/>

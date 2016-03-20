@@ -1,0 +1,5 @@
+.codelite/
+Makefile
+Notebook/Debug/
+Notebook/Notebook.mk
+Notebook/Notebook.txt
