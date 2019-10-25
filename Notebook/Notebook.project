@@ -57,30 +57,30 @@
     <File Name="../README.md"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Notebook">
-    <File Name="wxStringHash.h"/>
-    <File Name="clColours.h"/>
-    <File Name="clColours.cpp"/>
-    <File Name="drawingutils.h"/>
-    <File Name="drawingutils.cpp"/>
-    <File Name="clTabRendererSquare.h"/>
-    <File Name="clTabRendererSquare.cpp"/>
-    <File Name="clTabRendererGTK3.h"/>
-    <File Name="clTabRendererGTK3.cpp"/>
-    <File Name="clTabRendererCurved.h"/>
-    <File Name="clTabRendererCurved.cpp"/>
-    <File Name="clTabRendererClassic.h"/>
-    <File Name="clTabRendererClassic.cpp"/>
-    <File Name="clTabRenderer.h"/>
-    <File Name="clTabRenderer.cpp"/>
-    <File Name="clTabHistory.h"/>
-    <File Name="clTabHistory.cpp"/>
-    <File Name="codelite_exports.h"/>
-    <File Name="Notebook.h"/>
-    <File Name="Notebook.cpp"/>
-    <File Name="notebook_bitmaps.xrc"/>
-    <File Name="notebook_bitmaps.cpp"/>
-    <File Name="windowstack.cpp"/>
-    <File Name="windowstack.h"/>
+    <VirtualDirectory Name="libnotebook">
+      <File Name="libnotebook/wxStringHash.h"/>
+      <File Name="libnotebook/windowstack.h"/>
+      <File Name="libnotebook/windowstack.cpp"/>
+      <File Name="libnotebook/Notebook.h"/>
+      <File Name="libnotebook/Notebook.cpp"/>
+      <File Name="libnotebook/drawingutils.h"/>
+      <File Name="libnotebook/drawingutils.cpp"/>
+      <File Name="libnotebook/codelite_exports.h"/>
+      <File Name="libnotebook/clTabRendererSquare.h"/>
+      <File Name="libnotebook/clTabRendererSquare.cpp"/>
+      <File Name="libnotebook/clTabRendererGTK3.h"/>
+      <File Name="libnotebook/clTabRendererGTK3.cpp"/>
+      <File Name="libnotebook/clTabRendererCurved.h"/>
+      <File Name="libnotebook/clTabRendererCurved.cpp"/>
+      <File Name="libnotebook/clTabRendererClassic.h"/>
+      <File Name="libnotebook/clTabRendererClassic.cpp"/>
+      <File Name="libnotebook/clTabRenderer.h"/>
+      <File Name="libnotebook/clTabRenderer.cpp"/>
+      <File Name="libnotebook/clTabHistory.h"/>
+      <File Name="libnotebook/clTabHistory.cpp"/>
+      <File Name="libnotebook/clColours.h"/>
+      <File Name="libnotebook/clColours.cpp"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="bitmaps">
       <File Name="bitmaps/chevron-down-black.png"/>
       <File Name="bitmaps/chevron-down-black@2x.png"/>
@@ -91,7 +91,6 @@
       <File Name="bitmaps/fileclose.png"/>
       <File Name="bitmaps/fileclose@2x.png"/>
     </VirtualDirectory>
-    <File Name="notebook_exports.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="osx">
     <File Name="Info.plist"/>
@@ -110,6 +109,7 @@
     <Configuration Name="Debug" CompilerType="g++-64" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-Wall;$(shell wx-config --cflags)" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
+        <IncludePath Value="libnotebook"/>
       </Compiler>
       <Linker Options="$(shell wx-config --libs);-mwindows" Required="yes"/>
       <ResourceCompiler Options="$(shell wx-config --rcflags)" Required="no"/>
@@ -188,6 +188,7 @@
     <Configuration Name="Release" CompilerType="g++-64" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O2;-Wall;$(shell wx-config --cflags)" C_Options="-O2;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
+        <IncludePath Value="libnotebook"/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
       <Linker Options="$(shell wx-config --libs);-mwindows" Required="yes"/>

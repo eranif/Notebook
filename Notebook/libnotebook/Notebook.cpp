@@ -114,7 +114,6 @@ Notebook::Notebook(
         // Add PNG and Bitmap handler
         wxImage::AddHandler(new wxPNGHandler);
         wxXmlResource::Get()->AddHandler(new wxBitmapXmlHandler);
-        Notebook_Init_Bitmaps();
         once = true;
     }
     style = (style & ~wxWINDOW_STYLE_MASK); // filter out wxWindow styles
