@@ -149,7 +149,11 @@ bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, b
 
 void Notebook::SetStyle(size_t style)
 {
+    size_t oldStyle = m_tabCtrl->GetStyle();
+    bool oldVerticalState = (oldStyle & (kNotebook_RightTabs | kNotebook_LeftTabs));
+    bool newVerticalState = (style & (kNotebook_RightTabs | kNotebook_LeftTabs));
     m_tabCtrl->SetStyle(style);
+    if(oldVerticalState != newVerticalState) { m_tabCtrl->DoSetBestSize(); }
     PositionControls();
     m_tabCtrl->Refresh();
 }
@@ -273,6 +277,12 @@ void clTabCtrl::DoSetBestSize()
     m_nWidth = sz.GetWidth();
 
     if(IsVerticalTabs()) {
+        if(m_style & kNotebook_CloseButtonOnActiveTab) {
+            // add the button width
+            m_nWidth += 5;
+            m_nWidth += clTabRenderer::GetXButtonSize();
+            m_nWidth += 5;
+        }
         SetSizeHints(wxSize(m_nWidth, -1));
         SetSize(m_nWidth, -1);
     } else {
@@ -495,16 +505,17 @@ void clTabCtrl::UpdateVisibleTabs(bool forceReshuffle)
 void clTabCtrl::OnLeftDown(wxMouseEvent& event)
 {
     event.Skip();
+    const wxPoint& evetPos = event.GetPosition();
     m_closeButtonClickedIndex = wxNOT_FOUND;
 
-    if((GetStyle() & kNotebook_ShowFileListButton) && m_chevronRect.Contains(event.GetPosition())) {
+    if((GetStyle() & kNotebook_ShowFileListButton) && m_chevronRect.Contains(evetPos)) {
         // we will handle this later in the "Mouse Up" event
         return;
     }
 
     int tabHit, realPos;
     eDirection align;
-    TestPoint(event.GetPosition(), realPos, tabHit, align);
+    TestPoint(evetPos, realPos, tabHit, align);
     if(tabHit == wxNOT_FOUND) return;
 
     // Did we hit the active tab?
@@ -519,7 +530,8 @@ void clTabCtrl::OnLeftDown(wxMouseEvent& event)
         // we clicked on the selected index
         clTabInfo::Ptr_t t = m_visibleTabs.at(tabHit);
         wxRect xRect = t->GetCloseButtonRect();
-        if(xRect.Contains(event.GetPosition())) {
+
+        if(xRect.Contains(evetPos)) {
             m_closeButtonClickedIndex = tabHit;
             m_xButtonState = eButtonState::kPressed;
             Refresh();
