@@ -23,87 +23,65 @@
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 #include "windowstack.h"
+#include <algorithm>
+#include <wx/dcbuffer.h>
+#include <wx/wupdlock.h>
+
+#if CL_BUILD
+#include "clThemeUpdater.h"
+#endif
 
 WindowStack::WindowStack(wxWindow* parent, wxWindowID id)
-    : wxPanel(parent, id)
-    , m_selection(NULL)
+    : wxWindow(parent, id)
 {
-    m_mainSizer = new wxBoxSizer(wxVERTICAL);
-    SetSizer(m_mainSizer);
-    m_windows.clear();
+    Bind(wxEVT_SIZE, &WindowStack::OnSize, this);
+#if CL_BUILD
+    clThemeUpdater::Get().RegisterWindow(this);
+#endif
 }
 
-WindowStack::~WindowStack() { Clear(); }
-
-void WindowStack::DoSelect(wxWindow* win)
+WindowStack::~WindowStack()
 {
-    Freeze();
-    // remove the old selection
-    if(m_selection) {
-        m_mainSizer->Detach(m_selection);
-        m_selection->Hide();
-    }
-    if(win) {
-        m_mainSizer->Add(win, 1, wxEXPAND);
-        win->Show();
-        m_selection = win;
-    } else {
-        m_selection = NULL;
-    }
-    m_mainSizer->Layout();
-    Thaw();
+    Unbind(wxEVT_SIZE, &WindowStack::OnSize, this);
+#if CL_BUILD
+    clThemeUpdater::Get().UnRegisterWindow(this);
+#endif
 }
 
 void WindowStack::Select(wxWindow* win)
 {
-    if(!Contains(win)) return;
-    DoSelect(win);
+    //#ifndef __WXOSX__
+    //    wxWindowUpdateLocker locker(this);
+    //#endif
+    int index = FindPage(win);
+    if(index == wxNOT_FOUND) { return; }
+    ChangeSelection(index);
 }
-
-void WindowStack::SelectNone() { DoSelect(NULL); }
 
 void WindowStack::Clear()
 {
-    SelectNone();
-    m_selection = NULL;
-
-    std::set<wxWindow*>::iterator iter = m_windows.begin();
-    for(; iter != m_windows.end(); iter++) {
-        (*iter)->Destroy();
-    }
+    std::for_each(m_windows.begin(), m_windows.end(), [&](wxWindow* w) {
+        w->Hide();
+        w->Destroy();
+    });
     m_windows.clear();
+    m_activeWin = nullptr;
 }
 
 bool WindowStack::Remove(wxWindow* win)
 {
-    if(!Contains(win)) return false;
-    m_windows.erase(win);
-
-    if(win == m_selection) {
-        //GetParent()->Freeze();
-        //m_mainSizer->Detach(m_selection);
-        //m_mainSizer->Layout();
-        //m_selection = NULL;
-        //GetParent()->Thaw();
-        SelectNone();
-    }
-    return true;
-}
-
-bool WindowStack::Delete(wxWindow* win)
-{
-    if(!Remove(win)) return false;
-    win->Destroy();
+    int index = FindPage(win);
+    if(index == wxNOT_FOUND) { return false; }
+    m_windows.erase(m_windows.begin() + index);
+    if(win == m_activeWin) { m_activeWin = nullptr; }
     return true;
 }
 
 bool WindowStack::Add(wxWindow* win, bool select)
 {
-    if(!win || Contains(win)) {
-        return false;
-    }
+    if(!win || Contains(win)) { return false; }
     win->Reparent(this);
-    m_windows.insert(win);
+    m_windows.push_back(win);
     if(select) {
         DoSelect(win);
     } else {
@@ -112,7 +90,49 @@ bool WindowStack::Add(wxWindow* win, bool select)
     return true;
 }
 
-bool WindowStack::Contains(wxWindow* win)
+bool WindowStack::Contains(wxWindow* win) { return FindPage(win) != wxNOT_FOUND; }
+
+int WindowStack::FindPage(wxWindow* page) const
 {
-    return m_windows.count(win);
+    for(size_t i = 0; i < m_windows.size(); ++i) {
+        if(m_windows[i] == page) { return i; }
+    }
+    return wxNOT_FOUND;
+}
+
+wxWindow* WindowStack::GetSelected() const { return m_activeWin; }
+
+void WindowStack::ChangeSelection(size_t index)
+{
+    if(index >= m_windows.size()) { return; }
+    DoSelect(m_windows[index]);
+}
+
+void WindowStack::DoSelect(wxWindow* win)
+{
+    if(!win) { return; }
+    // Firsr, show the window
+    win->SetSize(wxRect(0, 0, GetSize().x, GetSize().y));
+    win->Show();
+    m_activeWin = win;
+    // Hide the rest
+    CallAfter(&WindowStack::DoHideNoActiveWindows);
+}
+
+void WindowStack::OnSize(wxSizeEvent& e)
+{
+    e.Skip();
+    if(!m_activeWin) { return; }
+    m_activeWin->SetSize(wxRect(0, 0, GetSize().x, GetSize().y));
+}
+
+void WindowStack::DoHideNoActiveWindows()
+{
+    std::for_each(m_windows.begin(), m_windows.end(), [&](wxWindow* w) {
+        if(w != m_activeWin) { w->Hide(); }
+    });
+
+#ifdef __WXOSX__
+    if(m_activeWin) { m_activeWin->Refresh(); }
+#endif
 }

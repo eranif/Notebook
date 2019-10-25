@@ -24,20 +24,23 @@
 //////////////////////////////////////////////////////////////////////////////
 #ifndef WINDOWSTACK_H
 #define WINDOWSTACK_H
-
-#include <set>
-#include <vector>
+#include "codelite_exports.h"
 #include "wx/panel.h"
 #include "wx/sizer.h"
-#include "notebook_exports.h"
+#include <set>
+#include <vector>
 
-class WXDLLIMPEXP_SDK WindowStack : public wxPanel
+class WXDLLIMPEXP_SDK WindowStack : public wxWindow
 {
-    std::set<wxWindow*> m_windows;
-    wxBoxSizer* m_mainSizer;
-    wxWindow* m_selection;
+    std::vector<wxWindow*> m_windows;
+    wxWindow* m_activeWin = nullptr;
 
+protected:
+    int FindPage(wxWindow* page) const;
+    void ChangeSelection(size_t index);
     void DoSelect(wxWindow* win);
+    void OnSize(wxSizeEvent& e);
+    void DoHideNoActiveWindows();
 
 public:
     WindowStack(wxWindow* parent, wxWindowID id = wxID_ANY);
@@ -45,17 +48,13 @@ public:
 
     bool Add(wxWindow* win, bool select);
     void Select(wxWindow* win);
-    void SelectNone();
     void Clear();
 
     bool Remove(wxWindow* win);
-    bool Delete(wxWindow* win);
 
     bool Contains(wxWindow* win);
-
-    int GetPageCount() const { return m_windows.size(); }
-    bool IsEmpty() const { return GetPageCount() == 0; }
-    wxWindow* GetSelected() { return m_selection; }
+    bool IsEmpty() const { return m_windows.empty(); }
+    wxWindow* GetSelected() const;
 };
 
 #endif // WINDOWSTACK_H

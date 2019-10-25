@@ -1,0 +1,19 @@
+#ifndef CLTABRENDERERCURVED_H
+#define CLTABRENDERERCURVED_H
+
+#include "clTabRenderer.h"
+#if !USE_AUI_NOTEBOOK
+class WXDLLIMPEXP_SDK clTabRendererCurved : public clTabRenderer
+{
+public:
+    clTabRendererCurved();
+    virtual ~clTabRendererCurved();
+
+    void Draw(wxWindow* parent, wxDC& dc, wxDC& fontDC, const clTabInfo& tabInfo, const clTabColours& colours,
+              size_t style, eButtonState buttonState);
+    void DrawBottomRect(wxWindow* parent, clTabInfo::Ptr_t activeTab, const wxRect& clientRect, wxDC& dc,
+                        const clTabColours& colours, size_t style);
+    clTabRenderer* New() const { return new clTabRendererCurved(); }
+};
+#endif
+#endif // CLTABRENDERERCURVED_H

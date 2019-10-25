@@ -1,6 +1,6 @@
+#include "MainFrame.h"
 #include <wx/app.h>
 #include <wx/event.h>
-#include "MainFrame.h"
 #include <wx/image.h>
 #include <wx/xrc/xmlres.h>
 
@@ -11,12 +11,22 @@ public:
     MainApp() {}
     virtual ~MainApp() {}
 
-    virtual bool OnInit() {
+    virtual bool OnInit()
+    {
+#ifdef __WXMSW__
+        typedef BOOL WINAPI (*SetProcessDPIAwareFunc)();
+        HINSTANCE user32Dll = LoadLibrary(L"User32.dll");
+        if(user32Dll) {
+            SetProcessDPIAwareFunc pFunc = (SetProcessDPIAwareFunc)GetProcAddress(user32Dll, "SetProcessDPIAware");
+            if(pFunc) { pFunc(); }
+            FreeLibrary(user32Dll);
+        }
+#endif
         // Add the common image handlers
         wxXmlResource::Get()->InitAllHandlers();
-        wxImage::AddHandler( new wxPNGHandler );
-        wxImage::AddHandler( new wxJPEGHandler );
-        MainFrame *mainFrame = new MainFrame(NULL);
+        wxImage::AddHandler(new wxPNGHandler);
+        wxImage::AddHandler(new wxJPEGHandler);
+        MainFrame* mainFrame = new MainFrame(NULL);
         SetTopWindow(mainFrame);
         return GetTopWindow()->Show();
     }

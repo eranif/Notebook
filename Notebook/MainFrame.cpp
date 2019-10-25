@@ -1,6 +1,10 @@
 #include "MainFrame.h"
-#include <wx/aboutdlg.h>
 #include "Notebook.h"
+#include "clTabRendererClassic.h"
+#include "clTabRendererCurved.h"
+#include "clTabRendererGTK3.h"
+#include "clTabRendererSquare.h"
+#include <wx/aboutdlg.h>
 #include <wx/msgdlg.h>
 #include <wx/stdpaths.h>
 
@@ -14,12 +18,8 @@ MainFrame::MainFrame(wxWindow* parent)
     menu->Append(wxID_COPY);
     menu->Append(wxID_PASTE);
 
-    m_book = new Notebook(m_mainPanel,
-                          wxID_ANY,
-                          wxDefaultPosition,
-                          wxDefaultSize,
-                          kNotebook_LightTabs | kNotebook_EnableNavigationEvent | kNotebook_AllowDnD |
-                              kNotebook_ShowFileListButton);
+    m_book = new Notebook(
+        m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_Default | kNotebook_UnderlineActiveTab);
     m_book->SetMenu(menu);
 
     m_mainPanel->GetSizer()->Insert(0, m_book, 1, wxEXPAND | wxALL, 0);
@@ -30,23 +30,18 @@ MainFrame::MainFrame(wxWindow* parent)
 
     m_book->AddPage(
         new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Page One",
-        true);
+        "Page One", true);
     m_book->SetPageToolTip(0, _("What a colourful blocks!!"));
 
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Two",
-                    true);
+        "Page Two", true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Three", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Three",
-                    true);
+        "Page Three", true);
     m_book->AddPage(new wxPanel(m_book), "wxPanel", true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Five", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Five",
-                    true);
+        "Page Five", true);
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Six", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Six",
-                    true);
+        "Page Six", true);
     m_book->SetPageBitmap(0, blocks);
     m_book->SetPageText(0, "Colourful Blocks!");
     m_book->SetPageBitmap(4, settings);
@@ -55,10 +50,9 @@ MainFrame::MainFrame(wxWindow* parent)
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGING, &MainFrame::OnPageChanging, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CLOSING, &MainFrame::OnPageClosing, this);
     m_book->Bind(wxEVT_BOOK_PAGE_CLOSED, &MainFrame::OnPageClosed, this);
-    m_book->Bind(wxEVT_BOOK_NAVIGATING, &MainFrame::OnNavigation, this);
     m_book->Bind(wxEVT_BOOK_TABAREA_DCLICKED, &MainFrame::OnTabAreadDClicked, this);
     m_book->Bind(wxEVT_BOOK_TAB_DCLICKED, &MainFrame::OnTabDClicked, this);
-    m_book->Bind(wxEVT_BOOK_TAB_RCLICK, &MainFrame::OnTabRClick, this);
+    m_book->Bind(wxEVT_BOOK_FILELIST_BUTTON_CLICKED, &MainFrame::OnFileButtonClicked, this);
 }
 
 MainFrame::~MainFrame() {}
@@ -88,9 +82,8 @@ void MainFrame::OnPageChanged(wxBookCtrlEvent& event)
     wxWindow* curpage = m_book->GetCurrentPage();
     int sel = m_book->FindPage(curpage);
     if(sel != event.GetSelection()) {
-        wxMessageBox("FATAL ERROR: current page does not match the selection!!",
-                     "Notebook Demo",
-                     wxICON_ERROR | wxOK | wxCENTER);
+        wxMessageBox("FATAL ERROR: current page does not match the selection!!", "Notebook Demo",
+            wxICON_ERROR | wxOK | wxCENTER);
     }
 }
 
@@ -107,15 +100,16 @@ void MainFrame::OnPageChanging(wxBookCtrlEvent& event)
 void MainFrame::OnClose(wxCommandEvent& event) { Close(); }
 void MainFrame::OnTabStyle(wxCommandEvent& event)
 {
-    size_t style = m_book->GetStyle();
-    if(event.GetId() == ID_STYLE_DARK) {
-        style &= ~kNotebook_LightTabs;
-        style |= kNotebook_DarkTabs;
-    } else {
-        style &= ~kNotebook_DarkTabs;
-        style |= kNotebook_LightTabs;
+    if(event.GetId() == ID_STYLE_DEFAULT) {
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererSquare()));
+    } else if(event.GetId() == ID_STYLE_GTK3) {
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererGTK3()));
+    } else if(event.GetId() == ID_STYLE_TRAPEZ) {
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererCurved()));
+    } else if(event.GetId() == ID_STYLE_MINIMAL) {
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererClassic()));
     }
-    m_book->SetStyle(style);
+    m_book->SetStyle(m_book->GetStyle()); // trigger a layout
 }
 
 void MainFrame::OnShowCloseButton(wxCommandEvent& event)
@@ -174,9 +168,11 @@ void MainFrame::OnTopTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxTOP
 void MainFrame::OnRightTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxRIGHT); }
 void MainFrame::OnLeftTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxLEFT); }
 
-void MainFrame::OnTabRClick(wxBookCtrlEvent& event)
+void MainFrame::OnFileButtonClicked(wxContextMenuEvent& event)
 {
-    wxString message;
-    message << "Tab " << event.GetSelection() << " right clicked\n";
-    m_log->AppendText(message);
+    wxMenu menu;
+    for(size_t i=0; i<m_book->GetPageCount(); ++i) {
+        menu.Append(wxID_ANY, m_book->GetPageText(i));
+    }
+    m_book->PopupMenu(&menu);
 }
