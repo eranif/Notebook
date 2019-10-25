@@ -53,14 +53,6 @@
 #define DEFAULT_FONT_SIZE 12
 #endif
 
-#ifdef __WXGTK20__
-// We need this ugly hack to workaround a gtk2-wxGTK name-clash^M
-// See http://trac.wxwidgets.org/ticket/10883^M
-#define GSocket GlibGSocket
-#include <gtk/gtk.h>
-#undef GSocket
-#endif
-
 static void RGBtoHSB(int r, int g, int b, float* h, float* s, float* br)
 {
     float hue, saturation, brightness;
