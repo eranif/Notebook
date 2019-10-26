@@ -225,8 +225,8 @@ void DrawingUtils::TruncateText(const wxString& text, int maxWidth, wxDC& dc, wx
     }
 }
 
-void DrawingUtils::PaintStraightGradientBox(
-    wxDC& dc, const wxRect& rect, const wxColour& startColor, const wxColour& endColor, bool vertical)
+void DrawingUtils::PaintStraightGradientBox(wxDC& dc, const wxRect& rect, const wxColour& startColor,
+                                            const wxColour& endColor, bool vertical)
 {
     int rd, gd, bd, high = 0;
     rd = endColor.Red() - startColor.Red();
@@ -474,7 +474,7 @@ wxBitmap DrawingUtils::CreateDisabledBitmap(const wxBitmap& bmp)
 #define DROPDOWN_ARROW_SIZE 20
 
 void DrawingUtils::DrawButton(wxDC& dc, wxWindow* win, const wxRect& rect, const wxString& label, const wxBitmap& bmp,
-    eButtonKind kind, eButtonState state)
+                              eButtonKind kind, eButtonState state)
 {
     // Draw the background
     wxRect clientRect = rect;
@@ -601,7 +601,7 @@ wxColour DrawingUtils::GetButtonBgColour() { return clSystemSettings::GetColour(
 wxColour DrawingUtils::GetButtonTextColour() { return clSystemSettings::GetColour(wxSYS_COLOUR_BTNTEXT); }
 
 void DrawingUtils::DrawButtonX(wxDC& dc, wxWindow* win, const wxRect& rect, const wxColour& penColour,
-    const wxColour& bgColouur, eButtonState state)
+                               const wxColour& bgColouur, eButtonState state)
 {
 #if 0
     size_t flags = 0;
@@ -662,7 +662,7 @@ void DrawingUtils::DrawButtonX(wxDC& dc, wxWindow* win, const wxRect& rect, cons
 }
 
 void DrawingUtils::DrawButtonMaximizeRestore(wxDC& dc, wxWindow* win, const wxRect& rect, const wxColour& penColour,
-    const wxColour& bgColouur, eButtonState state)
+                                             const wxColour& bgColouur, eButtonState state)
 {
 #if 0
     size_t flags = 0;
@@ -753,7 +753,7 @@ wxColour DrawingUtils::GetCaptionTextColour() { return clSystemSettings::GetColo
 #endif
 
 void DrawingUtils::DrawCustomChoice(wxWindow* win, wxDC& dc, const wxRect& rect, const wxString& label,
-    const wxColour& baseColour, const wxBitmap& bmp, int align)
+                                    const wxColour& baseColour, const wxBitmap& bmp, int align)
 {
     wxRect choiceRect = rect;
     // Fill the drop down button with the custom base colour
@@ -802,8 +802,8 @@ void DrawingUtils::DrawCustomChoice(wxWindow* win, wxDC& dc, const wxRect& rect,
     dc.DestroyClippingRegion();
 }
 
-void DrawingUtils::DrawNativeChoice(
-    wxWindow* win, wxDC& dc, const wxRect& rect, const wxString& label, const wxBitmap& bmp, int align)
+void DrawingUtils::DrawNativeChoice(wxWindow* win, wxDC& dc, const wxRect& rect, const wxString& label,
+                                    const wxBitmap& bmp, int align)
 {
     wxRect choiceRect = rect;
 #if defined(__WXMSW__) || defined(__WXGTK__)

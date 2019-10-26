@@ -6,6 +6,7 @@ class Notebook;
 class MainFrame : public MainFrameBaseClass
 {
     Notebook* m_book;
+
 public:
     MainFrame(wxWindow* parent);
     virtual ~MainFrame();
@@ -21,7 +22,7 @@ public:
     void OnTabAreadDClicked(wxBookCtrlEvent& event);
     void OnTabDClicked(wxBookCtrlEvent& event);
     void OnFileButtonClicked(wxContextMenuEvent& event);
-    
+
 protected:
     virtual void OnLeftTabs(wxCommandEvent& event);
     virtual void OnRightTabs(wxCommandEvent& event);

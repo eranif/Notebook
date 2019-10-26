@@ -11,8 +11,8 @@ extern void wxC9ED9InitBitmapResources();
 
 static bool bBitmapLoaded = false;
 
-MainFrameBaseClass::MainFrameBaseClass(
-    wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style)
+MainFrameBaseClass::MainFrameBaseClass(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
+                                       const wxSize& size, long style)
     : wxFrame(parent, id, title, pos, size, style)
 {
     if(!bBitmapLoaded) {
@@ -91,7 +91,7 @@ MainFrameBaseClass::MainFrameBaseClass(
     m_mainPanel->SetSizer(boxSizer11);
 
     m_log = new wxTextCtrl(m_mainPanel, wxID_ANY, wxT(""), wxDefaultPosition, wxDLG_UNIT(m_mainPanel, wxSize(-1, 150)),
-        wxTE_RICH | wxTE_MULTILINE);
+                           wxTE_RICH | wxTE_MULTILINE);
 
     boxSizer11->Add(m_log, 0, wxALL | wxEXPAND, WXC_FROM_DIP(5));
 
@@ -112,73 +112,73 @@ MainFrameBaseClass::MainFrameBaseClass(
 #endif
     // Connect events
     this->Connect(m_menuItem55->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTopTabs), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnTopTabs), NULL, this);
     this->Connect(m_styleLeft->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
     this->Connect(m_styleRight->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
     this->Connect(m_menuItemBottomTabs->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
     this->Connect(m_styleGTK3->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_styleMINIMAL->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_styleTRAPEZ->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_styleDEFAULT->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Connect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
-    this->Connect(
-        m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
+    this->Connect(m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL,
+                  this);
     this->Connect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
     this->Connect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
     this->Connect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
     this->Connect(m_menuItemShowDropDownButton->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
+                  wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
     this->Connect(m_menuItemShowDropDownButton->GetId(), wxEVT_UPDATE_UI,
-        wxUpdateUIEventHandler(MainFrameBaseClass::OnShowFileListButtonUI), NULL, this);
-    this->Connect(
-        Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
+                  wxUpdateUIEventHandler(MainFrameBaseClass::OnShowFileListButtonUI), NULL, this);
+    this->Connect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL,
+                  this);
 }
 
 MainFrameBaseClass::~MainFrameBaseClass()
 {
     this->Disconnect(m_menuItem55->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTopTabs), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnTopTabs), NULL, this);
     this->Disconnect(m_styleLeft->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnLeftTabs), NULL, this);
     this->Disconnect(m_styleRight->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnRightTabs), NULL, this);
     this->Disconnect(m_menuItemBottomTabs->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnBottomTabs), NULL, this);
     this->Disconnect(m_styleGTK3->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_styleMINIMAL->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_styleTRAPEZ->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_styleDEFAULT->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnTabStyle), NULL, this);
     this->Disconnect(m_menuItemMove->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
-    this->Disconnect(
-        m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnAllowTabMove), NULL, this);
+    this->Disconnect(m_menuItemMove->GetId(), wxEVT_UPDATE_UI, wxUpdateUIEventHandler(MainFrameBaseClass::OnDnDUI),
+                     NULL, this);
     this->Disconnect(m_menuItemShowCloseButton->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnShowCloseButton), NULL, this);
     this->Disconnect(m_menuItemCloseAll->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnDeleteAllPages), NULL, this);
     this->Disconnect(m_menuItemMouseMiddleClickCLoses->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnMouseMiddleCloses), NULL, this);
     this->Disconnect(m_menuItemShowDropDownButton->GetId(), wxEVT_COMMAND_MENU_SELECTED,
-        wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
+                     wxCommandEventHandler(MainFrameBaseClass::OnShowFileListButton), NULL, this);
     this->Disconnect(m_menuItemShowDropDownButton->GetId(), wxEVT_UPDATE_UI,
-        wxUpdateUIEventHandler(MainFrameBaseClass::OnShowFileListButtonUI), NULL, this);
-    this->Disconnect(
-        Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose), NULL, this);
+                     wxUpdateUIEventHandler(MainFrameBaseClass::OnShowFileListButtonUI), NULL, this);
+    this->Disconnect(Exit->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler(MainFrameBaseClass::OnClose),
+                     NULL, this);
 }
 
 DemoAppImages::DemoAppImages()

@@ -2,10 +2,10 @@
 #define CLTABHISTORY_H
 
 #include "codelite_exports.h"
+#include <algorithm>
 #include <vector>
 #include <wx/sharedptr.h>
 #include <wx/window.h>
-#include <algorithm>
 
 class WXDLLIMPEXP_SDK clTabHistory
 {
@@ -30,16 +30,12 @@ public:
         if(!page) return;
         std::vector<wxWindow*>::iterator iter =
             std::find_if(m_history.begin(), m_history.end(), [&](wxWindow* w) { return w == page; });
-        if(iter != m_history.end()) {
-            m_history.erase(iter);
-        }
+        if(iter != m_history.end()) { m_history.erase(iter); }
     }
 
     wxWindow* PrevPage()
     {
-        if(m_history.empty()) {
-            return NULL;
-        }
+        if(m_history.empty()) { return NULL; }
         // return the top of the heap
         return m_history[0];
     }

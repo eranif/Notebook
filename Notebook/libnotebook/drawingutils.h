@@ -67,8 +67,8 @@ public:
     static wxColour GetMenuBarTextColour();
     static void FillMenuBarBgColour(wxDC& dc, const wxRect& rect, bool miniToolbar = true);
     static void TruncateText(const wxString& text, int maxWidth, wxDC& dc, wxString& fixedText);
-    static void PaintStraightGradientBox(
-        wxDC& dc, const wxRect& rect, const wxColour& startColor, const wxColour& endColor, bool vertical);
+    static void PaintStraightGradientBox(wxDC& dc, const wxRect& rect, const wxColour& startColor,
+                                         const wxColour& endColor, bool vertical);
     static bool IsDark(const wxColour& col);
     static wxFont GetDefaultFixedFont();
 #if CL_BUILD
@@ -82,19 +82,19 @@ public:
      * @brief draw a button
      */
     static void DrawButton(wxDC& dc, wxWindow* win, const wxRect& rect, const wxString& label, const wxBitmap& bmp,
-        eButtonKind kind, eButtonState state);
+                           eButtonKind kind, eButtonState state);
 
     /**
      * @brief draw a close button
      */
     static void DrawButtonX(wxDC& dc, wxWindow* win, const wxRect& rect, const wxColour& penColour,
-        const wxColour& bgColouur, eButtonState state);
+                            const wxColour& bgColouur, eButtonState state);
 
     /**
      * @brief draw a close button
      */
     static void DrawButtonMaximizeRestore(wxDC& dc, wxWindow* win, const wxRect& rect, const wxColour& penColour,
-        const wxColour& bgColouur, eButtonState state);
+                                          const wxColour& bgColouur, eButtonState state);
 
     /**
      * @brief draw a drop down arrow
@@ -103,11 +103,12 @@ public:
     static void DrawDropDownArrow(wxWindow* win, wxDC& dc, const wxRect& rect, const wxColour& colour = wxColour());
 
     static void DrawNativeChoice(wxWindow* win, wxDC& dc, const wxRect& rect, const wxString& label,
-        const wxBitmap& bmp = wxNullBitmap, int align = wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
+                                 const wxBitmap& bmp = wxNullBitmap,
+                                 int align = wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
 
     static void DrawCustomChoice(wxWindow* win, wxDC& dc, const wxRect& rect, const wxString& label,
-        const wxColour& baseColour = wxNullColour, const wxBitmap& bmp = wxNullBitmap,
-        int align = wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
+                                 const wxColour& baseColour = wxNullColour, const wxBitmap& bmp = wxNullBitmap,
+                                 int align = wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
     /// -------------------------------------------------------------
     /// New theme related API
     /// -------------------------------------------------------------

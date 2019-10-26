@@ -105,8 +105,8 @@ void Notebook::PositionControls()
     Layout();
 }
 
-Notebook::Notebook(
-    wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style, const wxString& name)
+Notebook::Notebook(wxWindow* parent, wxWindowID id, const wxPoint& pos, const wxSize& size, long style,
+                   const wxString& name)
     : wxPanel(parent, id, pos, size, wxWANTS_CHARS | wxTAB_TRAVERSAL | (style & wxWINDOW_STYLE_MASK), name)
 {
     static bool once = false;
@@ -131,18 +131,22 @@ Notebook::Notebook(
 
 Notebook::~Notebook() {}
 
-void Notebook::AddPage(wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp)
+void Notebook::AddPage(wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp,
+                       const wxString& shortLabel)
 {
     clTabInfo::Ptr_t tab(new clTabInfo(m_tabCtrl, GetStyle(), page, label, bmp));
+    tab->SetShortLabel(shortLabel);
     tab->SetActive(selected, GetStyle());
     m_tabCtrl->AddPage(tab);
 }
 
 void Notebook::DoChangeSelection(wxWindow* page) { m_windows->Select(page); }
 
-bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp)
+bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, bool selected, const wxBitmap& bmp,
+                          const wxString& shortLabel)
 {
     clTabInfo::Ptr_t tab(new clTabInfo(m_tabCtrl, GetStyle(), page, label, bmp));
+    tab->SetShortLabel(shortLabel);
     tab->SetActive(selected, GetStyle());
     return m_tabCtrl->InsertPage(index, tab);
 }
@@ -269,7 +273,12 @@ void clTabCtrl::DoSetBestSize()
     wxFont font = clTabRenderer::GetTabFont(true);
     gcdc.SetFont(font);
 
-    wxSize sz = gcdc.GetTextExtent("_WORKSPACE_");
+    wxString text;
+    for(clTabInfo::Ptr_t ti : m_tabs) {
+        if(text.length() < ti->GetBestLabel(m_style).length()) { text = ti->GetBestLabel(m_style); }
+    }
+    if(text.empty()) { text = "_WORKSPACE_"; }
+    wxSize sz = gcdc.GetTextExtent(text);
     int bmpHeight = clTabRenderer::GetDefaultBitmapHeight(GetArt()->ySpacer);
 
     m_nHeight = sz.GetHeight() + (4 * GetArt()->ySpacer);
@@ -277,6 +286,7 @@ void clTabCtrl::DoSetBestSize()
     m_nWidth = sz.GetWidth();
 
     if(IsVerticalTabs()) {
+        m_nWidth += 2 * GetArt()->xSpacer;
         if(m_style & kNotebook_CloseButtonOnActiveTab) {
             // add the button width
             m_nWidth += 5;
@@ -333,8 +343,8 @@ bool clTabCtrl::IsActiveTabVisible(const clTabInfo::Vec_t& tabs) const
             if(t->IsActive() && clientRect.Intersects(t->GetRect())) { return true; }
         } else {
             wxRect tabRect = t->GetRect();
-            tabRect.SetWidth(
-                tabRect.GetWidth() * 0.5); // The tab does not need to be fully shown, but at least 50% of it
+            tabRect.SetWidth(tabRect.GetWidth() *
+                             0.5); // The tab does not need to be fully shown, but at least 50% of it
             if(t->IsActive() && clientRect.Contains(tabRect)) { return true; }
         }
     }
@@ -411,7 +421,9 @@ void clTabCtrl::OnPaint(wxPaintEvent& e)
 #endif
 
     GetArt()->DrawBackground(this, gcdc, clientRect, m_colours, m_style);
-    for(size_t i = 0; i < m_tabs.size(); ++i) { m_tabs[i]->CalculateOffsets(GetStyle()); }
+    for(size_t i = 0; i < m_tabs.size(); ++i) {
+        m_tabs[i]->CalculateOffsets(GetStyle());
+    }
 
     // Sanity
     if(!(rect.GetSize().x > 0 && rect.GetSize().y > 0)) {
@@ -761,7 +773,7 @@ void clTabCtrl::OnMouseMotion(wxMouseEvent& event)
     if(m_dragStartTime.IsValid()) { // If we're tugging on the tab, consider starting D'n'D
         wxTimeSpan diff = wxDateTime::UNow() - m_dragStartTime;
         if(diff.GetMilliseconds() > 100 && // We need to check both x and y distances as tabs may be vertical
-            ((abs(m_dragStartPos.x - event.GetX()) > 10) || (abs(m_dragStartPos.y - event.GetY()) > 10))) {
+           ((abs(m_dragStartPos.x - event.GetX()) > 10) || (abs(m_dragStartPos.y - event.GetY()) > 10))) {
             OnBeginDrag(); // Sufficient time and distance since the LeftDown for a believable D'n'D start
         }
     }
@@ -846,7 +858,9 @@ void clTabCtrl::SetStyle(size_t style)
         m_colours.InitLightColours();
     }
 
-    for(size_t i = 0; i < m_tabs.size(); ++i) { m_tabs.at(i)->CalculateOffsets(GetStyle()); }
+    for(size_t i = 0; i < m_tabs.size(); ++i) {
+        m_tabs.at(i)->CalculateOffsets(GetStyle());
+    }
 
     GetArt()->AdjustColours(m_colours, GetStyle());
     m_visibleTabs.clear();
@@ -1009,8 +1023,8 @@ void clTabCtrl::OnMouseMiddleClick(wxMouseEvent& event)
 
 void clTabCtrl::GetAllPages(std::vector<wxWindow*>& pages)
 {
-    std::for_each(
-        m_tabs.begin(), m_tabs.end(), [&](clTabInfo::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
+    std::for_each(m_tabs.begin(), m_tabs.end(),
+                  [&](clTabInfo::Ptr_t tabInfo) { pages.push_back(tabInfo->GetWindow()); });
 }
 
 void clTabCtrl::SetMenu(wxMenu* menu)
@@ -1062,7 +1076,7 @@ void clTabCtrl::DoShowTabList()
 #if CL_BUILD
     if(EditorConfigST::Get()->GetOptions()->IsSortTabsDropdownAlphabetically()) {
         std::sort(sortedIndexes.begin(), sortedIndexes.end(),
-            [this](size_t i1, size_t i2) { return m_tabs[i1]->m_label.CmpNoCase(m_tabs[i2]->m_label) < 0; });
+                  [this](size_t i1, size_t i2) { return m_tabs[i1]->m_label.CmpNoCase(m_tabs[i2]->m_label) < 0; });
     }
 #endif
     for(auto sortedIndex : sortedIndexes) {
@@ -1256,8 +1270,8 @@ void clTabCtrl::OnLeftDClick(wxMouseEvent& event)
     }
 }
 
-void clTabCtrl::DoDrawBottomBox(
-    clTabInfo::Ptr_t activeTab, const wxRect& clientRect, wxDC& dc, const clTabColours& colours)
+void clTabCtrl::DoDrawBottomBox(clTabInfo::Ptr_t activeTab, const wxRect& clientRect, wxDC& dc,
+                                const clTabColours& colours)
 {
     GetArt()->DrawBottomRect(this, activeTab, clientRect, dc, colours, GetStyle());
 }
@@ -1387,8 +1401,8 @@ bool clTabCtrlDropTarget::OnDropText(wxCoord x, wxCoord y, const wxString& data)
         if(realPos == wxNOT_FOUND) {
             targetBook->AddPage(movingTab->GetWindow(), movingTab->GetLabel(), true, movingTab->GetBitmap());
         } else {
-            targetBook->InsertPage(
-                realPos, movingTab->GetWindow(), movingTab->GetLabel(), true, movingTab->GetBitmap());
+            targetBook->InsertPage(realPos, movingTab->GetWindow(), movingTab->GetLabel(), true,
+                                   movingTab->GetBitmap());
         }
         return true;
     } else if(m_notebook) {

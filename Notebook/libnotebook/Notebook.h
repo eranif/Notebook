@@ -256,7 +256,7 @@ public:
      * Constructor
      */
     Notebook(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
-        const wxSize& size = wxDefaultSize, long style = 0, const wxString& name = wxEmptyString);
+             const wxSize& size = wxDefaultSize, long style = 0, const wxString& name = wxEmptyString);
 
     /**
      * @brief update the notebook art class and refresh
@@ -292,13 +292,14 @@ public:
     /**
      * @brief append page to the notebook
      */
-    void AddPage(wxWindow* page, const wxString& label, bool selected = false, const wxBitmap& bmp = wxNullBitmap);
+    void AddPage(wxWindow* page, const wxString& label, bool selected = false, const wxBitmap& bmp = wxNullBitmap,
+                 const wxString& shortLabel = wxEmptyString);
 
     /**
      * @brief insert page at a specified position
      */
-    bool InsertPage(
-        size_t index, wxWindow* page, const wxString& label, bool selected = false, const wxBitmap& bmp = wxNullBitmap);
+    bool InsertPage(size_t index, wxWindow* page, const wxString& label, bool selected = false,
+                    const wxBitmap& bmp = wxNullBitmap, const wxString& shortLabel = wxEmptyString);
 
     /**
      * @brief return the currently selected page or null

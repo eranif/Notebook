@@ -22,10 +22,7 @@ void clColours::InitDefaults()
     selItemTextColour = wxSystemSettings::GetColour(wxSYS_COLOUR_LISTBOXHIGHLIGHTTEXT);
 }
 
-void clColours::InitDarkDefaults()
-{
-    InitFromColour(wxColour("#5F6A6A"));
-}
+void clColours::InitDarkDefaults() { InitFromColour(wxColour("#5F6A6A")); }
 
 bool clColours::IsLightTheme() const { return !DrawingUtils::IsDark(wxSystemSettings::GetColour(wxSYS_COLOUR_3DFACE)); }
 

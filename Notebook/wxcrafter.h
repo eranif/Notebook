@@ -102,8 +102,9 @@ public:
     wxTextCtrl* GetLog() { return m_log; }
     wxPanel* GetMainPanel() { return m_mainPanel; }
     MainFrameBaseClass(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("My Frame"),
-        const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(-1, -1),
-        long style = wxCAPTION | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX | wxSYSTEM_MENU | wxCLOSE_BOX);
+                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize(-1, -1),
+                       long style = wxCAPTION | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX | wxSYSTEM_MENU |
+                                    wxCLOSE_BOX);
     virtual ~MainFrameBaseClass();
 };
 

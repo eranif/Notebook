@@ -18,8 +18,8 @@ MainFrame::MainFrame(wxWindow* parent)
     menu->Append(wxID_COPY);
     menu->Append(wxID_PASTE);
 
-    m_book = new Notebook(
-        m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize, kNotebook_Default | kNotebook_UnderlineActiveTab);
+    m_book = new Notebook(m_mainPanel, wxID_ANY, wxDefaultPosition, wxDefaultSize,
+                          kNotebook_Default | kNotebook_UnderlineActiveTab);
     m_book->SetMenu(menu);
 
     m_mainPanel->GetSizer()->Insert(0, m_book, 1, wxEXPAND | wxALL, 0);
@@ -30,20 +30,19 @@ MainFrame::MainFrame(wxWindow* parent)
 
     m_book->AddPage(
         new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Page One", true);
+        "Blocks", true, wxNullBitmap, "BLK");
     m_book->SetPageToolTip(0, _("What a colourful blocks!!"));
 
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Page Two", true);
+                    "Page Two", true, wxNullBitmap, "2");
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Three", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Page Three", true);
-    m_book->AddPage(new wxPanel(m_book), "wxPanel", true);
+                    "Page Three", true, wxNullBitmap, "3");
+    m_book->AddPage(new wxPanel(m_book), "wxPanel", true, wxNullBitmap, "PNL");
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Five", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Page Five", true);
+                    "Page Five", true, wxNullBitmap, "5");
     m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Six", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Page Six", true);
+                    "Page Six", true, wxNullBitmap, "6");
     m_book->SetPageBitmap(0, blocks);
-    m_book->SetPageText(0, "Colourful Blocks!");
     m_book->SetPageBitmap(4, settings);
 
     m_book->Bind(wxEVT_BOOK_PAGE_CHANGED, &MainFrame::OnPageChanged, this);
@@ -83,7 +82,7 @@ void MainFrame::OnPageChanged(wxBookCtrlEvent& event)
     int sel = m_book->FindPage(curpage);
     if(sel != event.GetSelection()) {
         wxMessageBox("FATAL ERROR: current page does not match the selection!!", "Notebook Demo",
-            wxICON_ERROR | wxOK | wxCENTER);
+                     wxICON_ERROR | wxOK | wxCENTER);
     }
 }
 
@@ -171,7 +170,7 @@ void MainFrame::OnLeftTabs(wxCommandEvent& event) { m_book->SetTabDirection(wxLE
 void MainFrame::OnFileButtonClicked(wxContextMenuEvent& event)
 {
     wxMenu menu;
-    for(size_t i=0; i<m_book->GetPageCount(); ++i) {
+    for(size_t i = 0; i < m_book->GetPageCount(); ++i) {
         menu.Append(wxID_ANY, m_book->GetPageText(i));
     }
     m_book->PopupMenu(&menu);
