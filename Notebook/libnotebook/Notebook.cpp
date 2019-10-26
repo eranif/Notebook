@@ -135,7 +135,9 @@ void Notebook::AddPage(wxWindow* page, const wxString& label, bool selected, con
                        const wxString& shortLabel)
 {
     clTabInfo::Ptr_t tab(new clTabInfo(m_tabCtrl, GetStyle(), page, label, bmp));
-    tab->SetShortLabel(shortLabel);
+    wxString shortl = shortLabel;
+    if(shortl.empty() && !label.empty()) { shortl = label.Mid(0, wxMin(label.Length(), 3)).Upper(); }
+    tab->SetShortLabel(shortl);
     tab->SetActive(selected, GetStyle());
     m_tabCtrl->AddPage(tab);
 }
@@ -146,7 +148,9 @@ bool Notebook::InsertPage(size_t index, wxWindow* page, const wxString& label, b
                           const wxString& shortLabel)
 {
     clTabInfo::Ptr_t tab(new clTabInfo(m_tabCtrl, GetStyle(), page, label, bmp));
-    tab->SetShortLabel(shortLabel);
+    wxString shortl = shortLabel;
+    if(shortl.empty() && !label.empty()) { shortl = label.Mid(0, wxMin(label.Length(), 3)).Upper(); }
+    tab->SetShortLabel(shortl);
     tab->SetActive(selected, GetStyle());
     return m_tabCtrl->InsertPage(index, tab);
 }

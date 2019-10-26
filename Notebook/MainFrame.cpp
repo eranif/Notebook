@@ -30,18 +30,18 @@ MainFrame::MainFrame(wxWindow* parent)
 
     m_book->AddPage(
         new wxTextCtrl(m_book, wxID_ANY, "Colourful Blocks!", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-        "Blocks", true, wxNullBitmap, "BLK");
+        "Blocks", true);
     m_book->SetPageToolTip(0, _("What a colourful blocks!!"));
 
-    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Two", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Two", true, wxNullBitmap, "2");
-    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Three", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Three", true, wxNullBitmap, "3");
-    m_book->AddPage(new wxPanel(m_book), "wxPanel", true, wxNullBitmap, "PNL");
-    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Five", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Five", true, wxNullBitmap, "5");
-    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Page Six", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
-                    "Page Six", true, wxNullBitmap, "6");
+    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Second Page", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
+                    "Second Page", true);
+    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Third Page", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
+                    "Third Page", true);
+    m_book->AddPage(new wxPanel(m_book), "wxPanel", true);
+    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Fifth Page", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
+                    "Fifth Page", true);
+    m_book->AddPage(new wxTextCtrl(m_book, wxID_ANY, "Sixth Page", wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE),
+                    "Sixth Page", true);
     m_book->SetPageBitmap(0, blocks);
     m_book->SetPageBitmap(4, settings);
 
