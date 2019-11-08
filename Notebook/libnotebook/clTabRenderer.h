@@ -55,16 +55,16 @@ enum NotebookStyle {
     kNotebook_EnableNavigationEvent = (1 << 8),
     /// Place tabs at the bottom
     kNotebook_BottomTabs = (1 << 9),
-
+    
     /// Allow DnD between different book controls
     kNotebook_AllowForeignDnD = (1 << 10),
-
+    
     /// Place the tabs on the right
     kNotebook_RightTabs = (1 << 11),
-
+    
     /// Place th tabs on the left
     kNotebook_LeftTabs = (1 << 12),
-
+    
     /// The notebook colours are changing based on the current editor theme
     kNotebook_DynamicColours = (1 << 13),
 
@@ -151,7 +151,8 @@ public:
     int m_height;
     int m_vTabsWidth;
     int m_textWidth;
-
+    eButtonState m_xButtonState = eButtonState::kNormal;
+    
 public:
     void CalculateOffsets(size_t style);
     void CalculateOffsets(size_t style, wxDC& dc);
@@ -206,14 +207,14 @@ public:
     int ySpacer;
     wxString m_name;
     static std::unordered_map<wxString, clTabRenderer*> ms_Renderes;
-
+    
 protected:
     void ClearActiveTabExtraLine(clTabInfo::Ptr_t activeTab, wxDC& dc, const clTabColours& colours, size_t style);
     void DrawMarker(wxDC& dc, const clTabInfo& tabInfo, const clTabColours& colours, size_t style);
     void DrawMarkerLine(wxDC& dc, const wxPoint& p1, const wxPoint& p2, wxDirection direction);
     static void RegisterRenderer(clTabRenderer* renderer);
     static clTabRenderer* Create(const wxString& name);
-
+    
 public:
     clTabRenderer(const wxString& name);
     virtual ~clTabRenderer() {}
@@ -246,7 +247,7 @@ public:
      * @brief draw cheveron button
      */
     static void DrawChevron(wxWindow* win, wxDC& dc, const wxRect& rect, const clTabColours& colours);
-
+    
     static int GetXButtonSize();
     /**
      * @brief Adjust colours per renderer

@@ -112,6 +112,7 @@ clTabInfo::clTabInfo(clTabCtrl* tabCtrl, size_t style, wxWindow* page, const wxS
     , m_window(page)
     , m_active(false)
     , m_textWidth(0)
+    , m_xButtonState(eButtonState::kDisabled)
 {
     CalculateOffsets(style);
     if(m_bitmap.IsOk()) { m_disabledBitmp = DrawingUtils::CreateDisabledBitmap(m_bitmap); }
@@ -128,6 +129,7 @@ clTabInfo::clTabInfo(clTabCtrl* tabCtrl)
     , m_bmpCloseX(wxNOT_FOUND)
     , m_bmpCloseY(wxNOT_FOUND)
     , m_textWidth(0)
+    , m_xButtonState(eButtonState::kDisabled)
 {
     CalculateOffsets(0);
 }
@@ -168,16 +170,6 @@ void clTabInfo::CalculateOffsets(size_t style, wxDC& dc)
     m_width += M_spacer;
     m_width += S_spacer;
 
-    // x button
-    wxRect xrect;
-    if((style & kNotebook_CloseButtonOnActiveTab)) {
-        xrect = wxRect(m_width, 0, X_BUTTON_SIZE, X_BUTTON_SIZE);
-        m_bmpCloseX = xrect.GetX();
-        m_bmpCloseY = 0; // we will fix this later
-        m_width += xrect.GetWidth();
-        m_width += X_spacer;
-    }
-
     // bitmap
     m_bmpX = wxNOT_FOUND;
     m_bmpY = wxNOT_FOUND;
@@ -194,10 +186,22 @@ void clTabInfo::CalculateOffsets(size_t style, wxDC& dc)
     m_textY = ((m_height - sz.y) / 2);
     m_width += sz.x;
     m_textWidth = sz.x;
-
     m_width += X_spacer;
+
+    // x button
+    wxRect xrect;
+    if((style & kNotebook_CloseButtonOnActiveTab)) {
+        xrect = wxRect(m_width, 0, X_BUTTON_SIZE, X_BUTTON_SIZE);
+        m_bmpCloseX = xrect.GetX();
+        m_bmpCloseY = 0; // we will fix this later
+        m_width += xrect.GetWidth();
+        m_width += X_spacer;
+    }
+
+    // Extra spacers
     m_width += M_spacer;
     m_width += S_spacer;
+
     if((style & kNotebook_UnderlineActiveTab) && bVerticalTabs) { m_width += 8; }
     // Update the rect width
     m_rect.SetWidth(m_width);
@@ -234,6 +238,7 @@ void clTabInfo::SetLabel(const wxString& label, size_t style)
 void clTabInfo::SetActive(bool active, size_t style)
 {
     this->m_active = active;
+    this->m_xButtonState = active ? eButtonState::kNormal : eButtonState::kDisabled;
     CalculateOffsets(style);
 }
 
