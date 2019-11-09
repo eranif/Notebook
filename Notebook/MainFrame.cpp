@@ -100,13 +100,13 @@ void MainFrame::OnClose(wxCommandEvent& event) { Close(); }
 void MainFrame::OnTabStyle(wxCommandEvent& event)
 {
     if(event.GetId() == ID_STYLE_DEFAULT) {
-        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererSquare()));
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererSquare(this)));
     } else if(event.GetId() == ID_STYLE_GTK3) {
-        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererGTK3()));
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererGTK3(this)));
     } else if(event.GetId() == ID_STYLE_TRAPEZ) {
-        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererCurved()));
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererCurved(this)));
     } else if(event.GetId() == ID_STYLE_MINIMAL) {
-        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererClassic()));
+        m_book->SetArt(clTabRenderer::Ptr_t(new clTabRendererClassic(this)));
     }
     m_book->SetStyle(m_book->GetStyle()); // trigger a layout
 }

@@ -20,7 +20,11 @@
 #include <wx/settings.h>
 #include <wx/xrc/xmlres.h>
 
-static int X_BUTTON_SIZE = 12;
+#if CL_BUILD
+#include "drawingutils.h"
+#endif
+
+static int X_BUTTON_SIZE = 14;
 
 clTabColours::clTabColours() { InitDarkColours(); }
 
@@ -88,11 +92,7 @@ void clTabColours::InitLightColours()
     if(DrawingUtils::IsDark(activeTabBgColour)) { activeTabTextColour = *wxWHITE; }
 
     tabAreaColour = faceColour;
-#if CL_BUILD
-    markerColour = clConfig::Get().Read("ActiveTabMarkerColour", wxColour("#dc7633"));
-#else
     markerColour = wxSystemSettings::GetColour(wxSYS_COLOUR_ACTIVECAPTION);
-#endif
 
 #ifdef __WXMSW__
     inactiveTabBgColour = faceColour.ChangeLightness(90);
@@ -105,6 +105,22 @@ void clTabColours::InitLightColours()
 
 bool clTabColours::IsDarkColours() const { return DrawingUtils::IsDark(activeTabBgColour); }
 
+static void SetBestXButtonSize(wxWindow* win)
+{
+    wxUnusedVar(win);
+    static bool once = true;
+
+    if(once) {
+        once = false;
+        wxBitmap bmp(1, 1);
+        wxMemoryDC dc(bmp);
+        wxGCDC gcdc(dc);
+        gcdc.SetFont(DrawingUtils::GetDefaultGuiFont());
+        wxSize sz = gcdc.GetTextExtent("T");
+        X_BUTTON_SIZE = wxMax(sz.x, sz.y);
+    }
+}
+
 clTabInfo::clTabInfo(clTabCtrl* tabCtrl, size_t style, wxWindow* page, const wxString& text, const wxBitmap& bmp)
     : m_bitmap(bmp)
     , m_tabCtrl(tabCtrl)
@@ -114,6 +130,7 @@ clTabInfo::clTabInfo(clTabCtrl* tabCtrl, size_t style, wxWindow* page, const wxS
     , m_textWidth(0)
     , m_xButtonState(eButtonState::kDisabled)
 {
+    SetBestXButtonSize(tabCtrl);
     CalculateOffsets(style);
     if(m_bitmap.IsOk()) { m_disabledBitmp = DrawingUtils::CreateDisabledBitmap(m_bitmap); }
 }
@@ -131,6 +148,7 @@ clTabInfo::clTabInfo(clTabCtrl* tabCtrl)
     , m_textWidth(0)
     , m_xButtonState(eButtonState::kDisabled)
 {
+    SetBestXButtonSize(tabCtrl);
     CalculateOffsets(0);
 }
 
@@ -143,14 +161,6 @@ void clTabInfo::CalculateOffsets(size_t style, wxDC& dc)
     int X_spacer = m_tabCtrl ? m_tabCtrl->GetArt()->xSpacer : 5;
     int M_spacer = m_tabCtrl ? m_tabCtrl->GetArt()->majorCurveWidth : 5;
     int S_spacer = m_tabCtrl ? m_tabCtrl->GetArt()->smallCurveWidth : 2;
-
-#if wxVERSION_NUMBER >= 3100
-    static bool once = true;
-    if(m_tabCtrl && once) {
-        X_BUTTON_SIZE = m_tabCtrl->FromDIP(X_BUTTON_SIZE);
-        once = false;
-    }
-#endif
 
     wxFont font = clTabRenderer::GetTabFont(false);
     dc.SetFont(font);
@@ -260,18 +270,19 @@ const wxString& clTabInfo::GetBestLabel(size_t style) const
 
 std::unordered_map<wxString, clTabRenderer*> clTabRenderer::ms_Renderes;
 
-clTabRenderer::clTabRenderer(const wxString& name)
+clTabRenderer::clTabRenderer(const wxString& name, const wxWindow* parent)
     : bottomAreaHeight(0)
     , majorCurveWidth(0)
     , smallCurveWidth(0)
     , overlapWidth(0)
     , verticalOverlapWidth(0)
-    , xSpacer(20)
     , ySpacer(5)
     , m_name(name)
 {
-#if CL_BUILD
-    ySpacer = EditorConfigST::Get()->GetOptions()->GetNotebookTabHeight() + 2;
+#if wxCHECK_VERSION(3, 1, 0)
+    xSpacer = parent ? parent->FromDIP(10) : 10;
+#else
+    xSpacer = 10;
 #endif
 }
 
@@ -371,13 +382,13 @@ int clTabRenderer::GetDefaultBitmapHeight(int Y_spacer)
     return bmpHeight;
 }
 
-clTabRenderer::Ptr_t clTabRenderer::CreateRenderer(size_t tabStyle)
+clTabRenderer::Ptr_t clTabRenderer::CreateRenderer(const wxWindow* win, size_t tabStyle)
 {
     if(ms_Renderes.empty()) {
-        RegisterRenderer(new clTabRendererSquare());
-        RegisterRenderer(new clTabRendererGTK3());
-        RegisterRenderer(new clTabRendererClassic());
-        RegisterRenderer(new clTabRendererCurved());
+        RegisterRenderer(new clTabRendererSquare(win));
+        RegisterRenderer(new clTabRendererGTK3(win));
+        RegisterRenderer(new clTabRendererClassic(win));
+        RegisterRenderer(new clTabRendererCurved(win));
     }
     wxString tab = "DEFAULT";
 #if CL_BUILD
@@ -385,10 +396,10 @@ clTabRenderer::Ptr_t clTabRenderer::CreateRenderer(size_t tabStyle)
 #endif
     wxString name = tab.Upper();
     if((tabStyle & kNotebook_LeftTabs) || (tabStyle & kNotebook_RightTabs)) {
-        return clTabRenderer::Ptr_t(Create("MINIMAL"));
+        return clTabRenderer::Ptr_t(Create(win, "MINIMAL"));
     }
-    clTabRenderer* r = Create(name);
-    if(!r) { r = Create("DEFAULT"); }
+    clTabRenderer* r = Create(win, name);
+    if(!r) { r = Create(win, "DEFAULT"); }
     return clTabRenderer::Ptr_t(r);
 }
 
@@ -539,8 +550,8 @@ void clTabRenderer::RegisterRenderer(clTabRenderer* renderer)
     ms_Renderes.insert({ renderer->GetName(), renderer });
 }
 
-clTabRenderer* clTabRenderer::Create(const wxString& name)
+clTabRenderer* clTabRenderer::Create(const wxWindow* parent, const wxString& name)
 {
     if(ms_Renderes.count(name) == 0) { return nullptr; }
-    return ms_Renderes.find(name)->second->New();
+    return ms_Renderes.find(name)->second->New(parent);
 }
